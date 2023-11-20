@@ -1,0 +1,11 @@
+Model Information:
+* title:	Shuba Duck Dinghy
+* source:	https://sketchfab.com/3d-models/shuba-duck-dinghy-8d1656825c724d11b596eadbc75f5a21
+* author:	BobbieVR (https://sketchfab.com/BobbieVR)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Shuba Duck Dinghy" (https://sketchfab.com/3d-models/shuba-duck-dinghy-8d1656825c724d11b596eadbc75f5a21) by BobbieVR (https://sketchfab.com/BobbieVR) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
