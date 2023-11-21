@@ -7,59 +7,64 @@
 from mesa import Agent
 from enum import Enum
 
+# Road Directions
+Directions = Enum('Directions', ['UP', 'RIGHT', 'LEFT', 'DOWN'])
+
+# Stoplight Colors
+Colors = Enum('Colors', ['GREEN', 'YELLOW', 'RED'])
+
 class Car(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model) -> None:
         super().__init__(unique_id, model)
-        self.direction = 4
         self.steps_taken = 0
 
-    def move(self):
-        possible_steps = self.model.grid.get_neighborhood(
-            self.pos,
-            moore=True, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
-            include_center=True) 
-        
-        # Checks which grid cells are empty
-        freeSpaces = list(map(self.model.grid.is_cell_empty, possible_steps))
+    def move(self) -> None:
+        pass
 
-        next_moves = [p for p,f in zip(possible_steps, freeSpaces) if f == True]
-       
-        next_move = self.random.choice(next_moves)
+    def calculate_route(self) -> None:
+        pass
+    
+    def turn_sidelight(self) -> None:
+        pass
 
-        # Now move:
-        if self.random.random() < 0.1:
-            self.model.grid.move_agent(self, next_move)
-            self.steps_taken+=1
+    def wait(self) -> None:
+        pass
 
-    def step(self):
+    def step(self) -> None:
         self.move()
 
 class Destination(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model) -> None:
         super().__init__(unique_id, model)
 
-    def step(self):
+    def step(self) -> None:
         pass
 
 class Obstacle(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model) -> None:
         super().__init__(unique_id, model)
 
-    def step(self):
+    def step(self) -> None:
         pass  
 
+
 class Road(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, direction) -> None:
         super().__init__(unique_id, model)
-        
-    def step(self):
+        self.direction = direction
+
+    def step(self) -> None:
         pass
 
-Color = Enum('Color', ['RED', 'GREEN'])
 class Stoplight(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, state) -> None:
         super().__init__(unique_id, model)
-        self.state = Color.RED
-        
-    def step(self):
+        self.state = state
+        self.counter = 0
+    
+    def change_state(self) -> None:
+        self.state = Colors(self.state.value % len(Colors) + 1)
+
+    def step(self) -> None:
+        # TODO - Toggle state using counter
         pass

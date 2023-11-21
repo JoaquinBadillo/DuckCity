@@ -11,7 +11,15 @@
 from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
-from agents import Car, Destination, Obstacle, Road, Stoplight
+from agents import (
+    Car,
+    Destination,
+    Obstacle,
+    Road,
+    Stoplight,
+    Directions,
+    Colors
+)
 
 class TrafficModel(Model):
     def __init__(self,
