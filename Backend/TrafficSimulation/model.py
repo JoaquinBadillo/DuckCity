@@ -135,7 +135,7 @@ class TrafficModel(Model):
 
         for corner in corners:
             if self.grid.is_cell_empty(corner):
-                self.grid.place_agent(Car(f"car_{self.agent_id}", self), (0,0))
+                self.grid.place_agent(Car(f"car_{self.agent_id}", self), corner)
                 self.num_agents += 1
                 self.agent_id += 1
                 self.added_agents+=1
