@@ -13,8 +13,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Lerp : MonoBehaviour
-{
+public class Lerp : MonoBehaviour {
     [SerializeField] private Vector3 startPos;
     [SerializeField] private Vector3 finalPos;
     [Range(0.0f, 1.0f)]
@@ -29,6 +28,8 @@ public class Lerp : MonoBehaviour
     void Update() {
         t = (elapsedTime / moveTime);
         t *= t * (3.0f - 2.0f * t);
+
+        Vector3 direction = (finalPos - startPos).normalized;
         Vector3 position = startPos + (finalPos - startPos) * t;
         
         transform.position = position;
