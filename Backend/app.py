@@ -7,9 +7,30 @@
 # Last Update: 19/Nov/2023
 # Joaquín Badillo
 
-from flask import Flask, request, jsonify, abort, make_response
+from flask import Flask, request, jsonify, abort
+from flask.logging import default_handler
+
+# dictConfig({
+#     'version': 1,
+#     'formatters': {'default': {
+#         'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+#     }},
+#     'handlers': {'wsgi': {
+#         'class': 'logging.StreamHandler',
+#         'stream': 'ext://flask.logging.wsgi_errors_stream',
+#         'formatter': 'default'
+#     }},
+#     'root': {
+#         'level': 'INFO',
+#         'handlers': ['wsgi']
+#     }
+# })
 
 from TrafficSimulation.agents import Car, Destination, Obstacle, Road, Stoplight
+from TrafficSimulation.model import TrafficModel
+
+import logging
+import sys
 
 # Global Variables
 types = {
@@ -29,7 +50,14 @@ model_params = {
 model = None
 currentStep = 0
 
-app = Flask(__name__)
+app = Flask("app")
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter(
+    '%(name)s'
+))
+app.logger.addHandler(handler)
+app.logger.setLevel(logging.DEBUG)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -41,6 +69,7 @@ def bad_request(e):
 
 @app.route('/init', methods=['POST'])
 def initModel():
+    app.logger.info("GOT REQUEST")
     global model_params, model, currentStep
 
     if request.method == 'POST':
@@ -48,7 +77,7 @@ def initModel():
             model_params[key] = int(request.form.get(key, model_params[key]))
 
         # TODO - Initialize model (Requires a model lol)
-        model = None
+        model = TrafficModel(model_params)
 
         currentStep = 0
         return jsonify({"message": "Model Initialized"})
