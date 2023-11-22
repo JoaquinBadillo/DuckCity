@@ -15,6 +15,7 @@ using UnityEngine;
 public class Car_Movement : MonoBehaviour {
     [SerializeField] GameObject[] wheels;
     [SerializeField] Vector2 velocity;
+    [SerializeFiled] Vector2 direction;
     [SerializeField] float angularSpeed = 1.0f;
     private Mesh mesh;
     private Vector3[] position;
@@ -36,14 +37,15 @@ public class Car_Movement : MonoBehaviour {
 
     void Update() {
         float t = Time.time;
-        float y_angle = Mathf.Atan2(velocity.x, velocity.y) * Mathf.Rad2Deg;
-        Matrix4x4 composite = ApplyTransforms(y_angle, t);
+        Matrix4x4 composite = ApplyTransforms(t);
 
         foreach (Wheel_Movement comp in wheelMovements)
             comp.ApplyTransforms(velocity, composite, angularSpeed, t);   
     }
 
-    Matrix4x4 ApplyTransforms(float y_angle, float time) {
+    Matrix4x4 ApplyTransforms(float time) {
+        float y_angle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+
         Matrix4x4 move = Transformations.TranslationMat(
             velocity.x * time,
             0,
