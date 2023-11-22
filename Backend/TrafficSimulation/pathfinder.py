@@ -39,15 +39,6 @@ class GPS:
         return any(direction in road.directions for direction in directions)
     
     def get_neighbors(self, position) -> List[Tuple]:
-        cell = self.model.grid.get_cell_list_contents([position])
-        road = next(filter(lambda agent: type(agent) == Road, cell), None)
-
-        # Road should never be None tho, but hey we avoid a runtime error
-        if road is None:
-            return []
-
-        directions = road.directions
-
         neighbors = []
         x, y = position
 
@@ -66,7 +57,7 @@ class GPS:
             neighbors.append((x, y + 1))
         
         # ←
-        if self.valid(self.width - 1, (Directions.LEFT,)):
+        if self.valid(x - 1, y, (Directions.LEFT,)):
             neighbors.append((x - 1, y))
 
         # -- Diagonals --
@@ -106,8 +97,8 @@ class GPS:
         if cost is None: cost = self.euclidean_distance
         if heuristic is None: heuristic = self.manhattan_distance
         
-        pq = heapq.PriorityQueue()
-        pq.put((0, start))
+        pq = []
+        heapq.heappush(pq, (0, start))
 
         came_from = dict()
         cost_so_far = dict()
@@ -115,7 +106,7 @@ class GPS:
         came_from[start] = None
         cost_so_far[start] = 0
 
-        while not pq.empty():
+        while len(pq) > 0:
             current = heapq.heappop(pq)[1]
 
             if current == end:

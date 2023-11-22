@@ -12,7 +12,7 @@ from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 
-from .agents import (
+from agents import (
     Car,
     Destination,
     Obstacle,
@@ -20,12 +20,12 @@ from .agents import (
     Stoplight
 )
 
-from .utilities import (
+from utilities import (
     Colors,
     Directions
 )
 
-from .pathfinder import GPS
+from pathfinder import GPS
 
 import json
 import os
@@ -51,6 +51,7 @@ class TrafficModel(Model):
         self.added_agents = 0
         self.num_arrivals = 0
         self.traffic_lights = []
+        self.destinations = []
 
         # Load map from file
         dataDictionary = json.load(
@@ -116,6 +117,7 @@ class TrafficModel(Model):
                     elif col == "D":
                         agent = Destination(f"d_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
+                        self.destinations.append((c, self.height - r - 1))
 
         self.running = True
 
@@ -140,7 +142,16 @@ class TrafficModel(Model):
             )
 
             if car is None:
-                self.grid.place_agent(Car(f"car_{self.agent_id}", self), corner)
+                agent = Car(
+                    f"car_{self.agent_id}", 
+                    self,
+                    self.random.choice(self.destinations)
+                )
+
+                self.grid.place_agent(agent, corner)
+                agent.route = self.gps.astar(agent.pos, agent.destination)
+                self.schedule.add(agent)
+
                 self.num_agents += 1
                 self.agent_id += 1
                 self.added_agents+=1

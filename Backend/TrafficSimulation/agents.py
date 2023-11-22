@@ -18,7 +18,7 @@ class Car(Agent):
         super().__init__(unique_id, model)
         self.steps_taken = 0
         self.destination = destination
-        self.route = self.model.gps.astar(self.pos, self.destination)
+        self.route = []
         
         self.turn = None
 
