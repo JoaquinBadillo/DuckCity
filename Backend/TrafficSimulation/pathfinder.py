@@ -20,23 +20,22 @@ class GPS:
         return 0 <= x < self.model.width and 0 <= y < self.model.height
 
     def valid(self, x, y, directions: Tuple[Tuple[int]]) -> bool:
-        if not self.inside(x, y):
-            return False
-
+        if not self.inside(x, y): return False
+        
         cell = self.model.grid.get_cell_list_contents([(x, y)])
 
         # To block a route (on recalculation) an agent can add temp obstacles
         obstacles = tuple(filter(lambda agent: type(agent) == Obstacle, cell))
 
-        if len(obstacles) > 0:
-            return False
+        if len(obstacles) > 0: return False
         
         road = next(filter(lambda agent: type(agent) == Road, cell), None)
 
-        if road is None:
-            return False
+        if road is None: return False
         
         # Check if the direction of the road matches with direction of movement
+        # Sidenote... although this trashy code is O(n^2), n is at most 2
+        # Yes, we could use a set, but hashing might take longer with 2 elements
         return any(direction in road.directions for direction in directions)
     
     def get_neighbors(self, position) -> List[Tuple]:

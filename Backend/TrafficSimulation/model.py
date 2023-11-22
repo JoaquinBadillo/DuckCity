@@ -134,7 +134,12 @@ class TrafficModel(Model):
         ]
 
         for corner in corners:
-            if self.grid.is_cell_empty(corner):
+            car = next(
+                filter(lambda agent: type(agent) == Car, self.grid.get_cell_list_contents([corner])),
+                None
+            )
+
+            if car is None:
                 self.grid.place_agent(Car(f"car_{self.agent_id}", self), corner)
                 self.num_agents += 1
                 self.agent_id += 1
