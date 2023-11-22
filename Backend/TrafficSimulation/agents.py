@@ -57,9 +57,10 @@ class Road(Agent):
         pass
 
 class Stoplight(Agent):
-    def __init__(self, unique_id, model, state) -> None:
+    def __init__(self, unique_id, model, state, timer) -> None:
         super().__init__(unique_id, model)
         self.state = state
+        self.timer = timer
         self.counter = 0
     
     def change_state(self) -> None:
@@ -67,4 +68,12 @@ class Stoplight(Agent):
 
     def step(self) -> None:
         # TODO - Toggle state using counter
+        if self.state == Colors.GREEN and self.counter == self.timer - 2:
+            self.change_state(self)
+        elif self.state == Colors.YELLOW and self.counter == self.timer:
+            self.change_state(self)
+            self.counter = 0
+        elif self.state == Colors.RED and self.counter == self.timer:
+            self.change_state(self)
+            self.counter = 0
         pass
