@@ -147,9 +147,3 @@ class AStar:
         path.reverse()
 
         return path
-
-
-
-
-
-
