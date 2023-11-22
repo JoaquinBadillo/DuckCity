@@ -8,19 +8,18 @@
 # Joaquín Badillo
 
 import heapq
-from mesa.model import Model
 from agents import Road, Obstacle
 from utilities import Directions
 from typing import Tuple, List, Callable
 
-class AStar:
-    def __init__(self, model: Model):
+class GPS:
+    def __init__(self, model):
         self.model = model
 
     def inside(self, x, y) -> bool:
         return 0 <= x < self.model.width and 0 <= y < self.model.height
 
-    def valid(self, x, y, directions) -> bool:
+    def valid(self, x, y, directions: Tuple[Tuple[int]]) -> bool:
         if not self.inside(x, y):
             return False
 
@@ -37,10 +36,8 @@ class AStar:
         if road is None:
             return False
         
-        if road.direction not in directions:
-            return False 
-
-        return True
+        # Check if the direction of the road matches with direction of movement
+        return any(direction in road.directions for direction in directions)
     
     def get_neighbors(self, position) -> List[Tuple]:
         cell = self.model.grid.get_cell_list_contents([position])
@@ -50,7 +47,7 @@ class AStar:
         if road is None:
             return []
 
-        direction = road.direction
+        directions = road.directions
 
         neighbors = []
         x, y = position
@@ -58,37 +55,37 @@ class AStar:
         # -- Straight Directions --
 
         # ↓
-        if self.valid(x, y - 1, tuple(Directions.DOWN)):
+        if self.valid(x, y - 1, (Directions.DOWN,)):
             neighbors.append((x, y - 1))
         
         # → 
-        if self.valid(x + 1, y, tuple(Directions.RIGHT)):
+        if self.valid(x + 1, y, (Directions.RIGHT,)):
             neighbors.append((x + 1, y))
 
         # ↑
-        if self.valid(x, y + 1, tuple(Directions.UP)):
+        if self.valid(x, y + 1, (Directions.UP,)):
             neighbors.append((x, y + 1))
         
         # ←
-        if self.valid(self.width - 1, tuple(Directions.LEFT)):
+        if self.valid(self.width - 1, (Directions.LEFT,)):
             neighbors.append((x - 1, y))
 
         # -- Diagonals --
 
         # ↖ (Works for ↑ and ← roads) 
-        if self.valid(x - 1, y + 1, tuple(Directions.UP, Directions.LEFT)):
+        if self.valid(x - 1, y + 1, (Directions.UP, Directions.LEFT)):
             neighbors.append((x - 1, y + 1))
 
         # ↗ (Works for ↑ and → roads)
-        if self.valid(x + 1, y + 1, tuple(Directions.UP, Directions.RIGHT)):
+        if self.valid(x + 1, y + 1, (Directions.UP, Directions.RIGHT)):
             neighbors.append((x + 1, y + 1))
 
         # ↘ (Works for ↓ and → roads)
-        if self.valid(x + 1, y - 1, tuple(Directions.DOWN, Directions.RIGHT)):
+        if self.valid(x + 1, y - 1, (Directions.DOWN, Directions.RIGHT)):
             neighbors.append((x + 1, y - 1))
 
         # ↙ (Works for ↓ and ← roads)
-        if self.valid(x - 1, y - 1, tuple(Directions.DOWN, Directions.LEFT)):
+        if self.valid(x - 1, y - 1, (Directions.DOWN, Directions.LEFT)):
             neighbors.append((x - 1, y - 1))
 
         return neighbors

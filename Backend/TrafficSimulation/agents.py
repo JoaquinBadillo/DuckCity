@@ -18,7 +18,7 @@ class Car(Agent):
         super().__init__(unique_id, model)
         self.steps_taken = 0
         self.destination = destination
-        self.route = self.model.finder.astar(self.pos, self.destination)
+        self.route = self.model.gps.astar(self.pos, self.destination)
         
         self.turn = None
 
@@ -86,7 +86,7 @@ class Car(Agent):
                 temp.append(agent)
                 self.model.grid.place_agent(agent, position)
 
-        path = self.model.finder.astar(self.pos, self.destination)
+        path = self.model.gps.astar(self.pos, self.destination)
         
         if self.route is None:
             self.route = path
@@ -128,9 +128,9 @@ class Obstacle(Agent):
 
 
 class Road(Agent):
-    def __init__(self, unique_id, model, direction) -> None:
+    def __init__(self, unique_id, model, directions) -> None:
         super().__init__(unique_id, model)
-        self.direction = direction
+        self.directions = directions
 
     def step(self) -> None:
         pass
