@@ -1,0 +1,14 @@
+{
+    "s" : 7,
+    "S" : 15,
+    "^" : "Up",
+    "v" : "Down",
+    "<" : "Left",
+    ">" : "Right",
+    "#" : "Obstacle",
+    "{" : "Up-Left",
+    "}" : "Up-Right",
+    "[" : "Down-Left",
+    "]" : "Down-Right",
+    "D" : "Destination"
+}
