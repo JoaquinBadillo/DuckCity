@@ -12,7 +12,7 @@ from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 
-from agents import (
+from .agents import (
     Car,
     Destination,
     Obstacle,
@@ -20,19 +20,18 @@ from agents import (
     Stoplight
 )
 
-from utilities import (
+from .utilities import (
     Colors,
     Directions
 )
 
-from pathfinder import GPS
+from .pathfinder import GPS
 
 import json
 import os
 
 class TrafficModel(Model):
     def __init__(self,
-                 num_agents=10,
                  width=50,
                  height=50):
         super().__init__()
@@ -46,7 +45,7 @@ class TrafficModel(Model):
         
         # Stats
         self.num_steps = 0
-        self.num_agents = num_agents
+        self.num_agents = 0
         self.agent_id = 1
         self.added_agents = 0
         self.num_arrivals = 0
@@ -55,10 +54,10 @@ class TrafficModel(Model):
 
         # Load map from file
         dataDictionary = json.load(
-            open(f"{os.getcwd()}/city_files/mapDictionary.json")
+            open(f"{os.path.dirname(__file__)}/city_files/mapDictionary.json")
         )
 
-        with open(f'{os.getcwd()}/city_files/2021_base2.txt') as city:
+        with open(f'{os.path.dirname(__file__)}/city_files/2021_base2.txt') as city:
             lines = city.readlines()
             self.width = len(lines[0])-1
             self.height = len(lines)
@@ -113,12 +112,10 @@ class TrafficModel(Model):
                         if col == "S":
                             road = Road(f"r_{r*self.width+c}", self, (Directions.UP, Directions.DOWN))
                             self.grid.place_agent(road, (c, self.height - r - 1))
-                            self.schedule.add(road)
                             agent.state = Colors.RED
                         else:
                             road = Road(f"r_{r*self.width+c}", self, (Directions.LEFT, Directions.RIGHT))
                             self.grid.place_agent(road, (c, self.height - r - 1))
-                            self.schedule.add(road)                        
                         
                     elif col == "#":
                         agent = Obstacle(f"ob_{r*self.width+c}", self)

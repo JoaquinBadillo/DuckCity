@@ -8,8 +8,8 @@
 # Joaquín Badillo
 
 import heapq
-from agents import Road, Obstacle, Destination
-from utilities import Directions
+from .agents import Road, Obstacle, Destination
+from .utilities import Directions
 from typing import Tuple, List, Callable
 
 class GPS:
@@ -84,8 +84,9 @@ class GPS:
 
         return neighbors
 
+    # Avoid sqrt for performance
     def euclidean_distance(self, start: Tuple[int], end: Tuple[int]) -> float:
-        return ((start[0] - end[0]) ** 2 + (start[1] - end[1]) ** 2) ** 0.5
+        return (start[0] - end[0]) ** 2 + (start[1] - end[1]) ** 2
         
     def manhattan_distance(self, start: Tuple[int], end: Tuple[int]) -> int:
         return abs(start[0] - end[0]) + abs(start[1] - end[1])

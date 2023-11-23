@@ -1,5 +1,5 @@
-from agents import *
-from model import TrafficModel
+from TrafficSimulation.agents import *
+from TrafficSimulation.model import TrafficModel
 from mesa.visualization import CanvasGrid, BarChartModule
 from mesa.visualization import ModularServer
 import os
@@ -41,21 +41,15 @@ def agent_portrayal(agent):
 width = 0
 height = 0
 
-with open(f'{os.getcwd()}/city_files/2021_base2.txt') as baseFile:
+with open(f'{os.path.dirname(__file__)}/TrafficSimulation/city_files/2021_base2.txt') as baseFile:
     lines = baseFile.readlines()
     width = len(lines[0])-1
     height = len(lines)
 
-model_params = {
-    "num_agents": 5,
-    "width": 50,
-    "height": 50
-}
-
 print(width, height)
 grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
 
-server = ModularServer(TrafficModel, [grid], "Traffic", model_params)
+server = ModularServer(TrafficModel, [grid], "Traffic")
                        
 server.port = 8521 # The default
 server.launch()

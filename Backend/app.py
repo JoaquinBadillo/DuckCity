@@ -8,56 +8,35 @@
 # Joaquín Badillo
 
 from flask import Flask, request, jsonify, abort
-from flask.logging import default_handler
-
-# dictConfig({
-#     'version': 1,
-#     'formatters': {'default': {
-#         'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-#     }},
-#     'handlers': {'wsgi': {
-#         'class': 'logging.StreamHandler',
-#         'stream': 'ext://flask.logging.wsgi_errors_stream',
-#         'formatter': 'default'
-#     }},
-#     'root': {
-#         'level': 'INFO',
-#         'handlers': ['wsgi']
-#     }
-# })
-
-from TrafficSimulation.agents import Car, Destination, Obstacle, Road, Stoplight
+from TrafficSimulation.agents import Car, Stoplight
 from TrafficSimulation.model import TrafficModel
 
-import logging
-import sys
-
 # Global Variables
-types = {
-    "car": type(Car),
-    "destination": type(Destination),
-    "obstacle": type(Obstacle),
-    "road": type(Road),
-    "stoplight": type(Stoplight),
-}
 
-model_params = {
-    "num_agents": 5,
-    "width": 50,
-    "height": 50
+# Maps each agent str type to a dictionary with the type and a reducer function
+# Its cool this way, because we can add dynamically add agents and data to serve
+agents = {
+    "car": {
+        "type": Car,
+        "reducer": lambda agent: {
+            "id": agent.unique_id, 
+            "x": agent.pos[0],
+            "y": 1,
+            "z": agent.pos[1],
+        }
+    },
+    "stoplight": {
+        "type": Stoplight,
+        "reducer": lambda agent: {
+            "id": agent.unique_id,
+            "color": agent.state.name.lower()
+        }
+    }
 }
 
 model = None
-currentStep = 0
 
 app = Flask("app")
-
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(logging.Formatter(
-    '%(name)s'
-))
-app.logger.addHandler(handler)
-app.logger.setLevel(logging.DEBUG)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -69,37 +48,33 @@ def bad_request(e):
 
 @app.route('/init', methods=['POST'])
 def initModel():
-    app.logger.info("GOT REQUEST")
-    global model_params, model, currentStep
+    global model
 
     if request.method == 'POST':
-        for key in model_params:
-            model_params[key] = int(request.form.get(key, model_params[key]))
-
-        # TODO - Initialize model (Requires a model lol)
-        model = TrafficModel(model_params)
-
-        currentStep = 0
+        model = TrafficModel()
         return jsonify({"message": "Model Initialized"})
 
 @app.route('/agents/<agentType>', methods=['GET'])
 def getAgents(agentType):
-    global model
+    global model, agents
     agentType == request.view_args['agentType']
 
     if request.method == 'GET':
         if model is None:
             abort(400)
 
-        if agentType not in types:
+        if agentType not in agents:
             abort(400)
 
-        agentPositions = [
-            {"id": str(a.unique_id), "x": x, "y":1, "z":z} for a, (x, z)
-            in model.grid.coord_iter() if isinstance(a, agentType)
-        ]
+        datatype = agents[agentType]['type']
+        reducer = agents[agentType]['reducer']
 
-        return jsonify({'positions':agentPositions})
+        data = map(
+            reducer,
+            [agent for agent in model.schedule.agents if isinstance(agent, datatype)]
+        )
+
+        return jsonify({'positions': list(data)})
 
 @app.route('/stats', methods=['GET'])
 def getStats():
@@ -115,13 +90,12 @@ def getStats():
 
 @app.route('/update', methods=['GET'])
 def updateModel():
-    global currentStep, model
+    global model
     if request.method == 'GET':
         model.step()
-        currentStep += 1
         return jsonify({
             'message': 'Model updated.', 
-            'currentStep':currentStep
+            'currentStep': model.num_steps
         })
 
 if __name__ == '__main__':

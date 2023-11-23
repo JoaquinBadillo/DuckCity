@@ -6,7 +6,7 @@
 
 from mesa import Agent
 
-from utilities import (
+from .utilities import (
     Directions,
     Colors
 )
