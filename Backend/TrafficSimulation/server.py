@@ -11,7 +11,7 @@ def agent_portrayal(agent):
                  "Shape": "rect",
                  "Filled": "true",
                  "Color": "red",
-                 "Layer": 1,
+                 "Layer": 2,
                  "w": 1,
                  "h": 1
                 }
@@ -26,7 +26,7 @@ def agent_portrayal(agent):
 
     if (isinstance(agent, Stoplight)):
         portrayal["Color"] = "red" if not agent.state else "green"
-        portrayal["Layer"] = 0
+        portrayal["Layer"] = 1
         portrayal["w"] = 0.8
         portrayal["h"] = 0.8
 

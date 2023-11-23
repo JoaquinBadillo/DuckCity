@@ -109,6 +109,15 @@ class TrafficModel(Model):
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                         self.schedule.add(agent)
                         self.traffic_lights.append(agent)
+
+                        if col == "S":
+                            road = Road(f"r_{r*self.width+c}", self, (Directions.UP, Directions.DOWN))
+                            self.grid.place_agent(road, (c, self.height - r - 1))
+                            self.schedule.add(road)
+                        else:
+                            road = Road(f"r_{r*self.width+c}", self, (Directions.LEFT, Directions.RIGHT))
+                            self.grid.place_agent(road, (c, self.height - r - 1))
+                            self.schedule.add(road)                        
                         
                     elif col == "#":
                         agent = Obstacle(f"ob_{r*self.width+c}", self)
@@ -124,16 +133,18 @@ class TrafficModel(Model):
     def step(self):
         self.schedule.step()
         self.num_steps += 1
-        
-        if self.num_steps % 10 != 0:
+
+        if self.num_steps % 10 != 1:
             return
         
-        corners = [
-            (0,0),
-            (self.width -1,0),
-            (0,self.height -1), 
-            (self.width -1,self.height -1)
-        ]
+        # corners = [
+        #     (0,0),
+        #     (self.width -1,0),
+        #     (0,self.height -1), 
+        #     (self.width -1,self.height -1)
+        # ]
+
+        corners = [(0, 0)]
 
         for corner in corners:
             car = next(

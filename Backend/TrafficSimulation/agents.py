@@ -26,6 +26,13 @@ class Car(Agent):
         self.arrived = False
 
     def action(self) -> None:
+        if len(self.route) == 0: return
+        
+        pos = self.route.pop()
+        self.move(pos)
+
+        return
+
         # -- State and Sensoring --
         
         # Stoplight (Currently sensed only in the same cell)
