@@ -15,7 +15,7 @@ using UnityEngine;
 public class Car_Movement : MonoBehaviour {
     [SerializeField] GameObject[] wheels;
     [SerializeField] Vector2 velocity;
-    [SerializeFiled] Vector2 direction;
+    [SerializeField] Vector2 direction;
     [SerializeField] float angularSpeed = 1.0f;
     private Mesh mesh;
     private Vector3[] position;
