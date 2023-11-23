@@ -114,6 +114,7 @@ class TrafficModel(Model):
                             road = Road(f"r_{r*self.width+c}", self, (Directions.UP, Directions.DOWN))
                             self.grid.place_agent(road, (c, self.height - r - 1))
                             self.schedule.add(road)
+                            agent.state = Colors.RED
                         else:
                             road = Road(f"r_{r*self.width+c}", self, (Directions.LEFT, Directions.RIGHT))
                             self.grid.place_agent(road, (c, self.height - r - 1))
@@ -131,20 +132,27 @@ class TrafficModel(Model):
         self.running = True
 
     def step(self):
+        for agent in self.schedule.agents:
+            if type(agent) == Car:
+                if agent.pos == agent.destination:
+                    self.num_arrivals += 1
+                    self.schedule.remove(agent)
+                    self.grid.remove_agent(agent)
+                    self.num_agents -= 1
+                    continue
+
         self.schedule.step()
         self.num_steps += 1
 
         if self.num_steps % 10 != 1:
             return
         
-        # corners = [
-        #     (0,0),
-        #     (self.width -1,0),
-        #     (0,self.height -1), 
-        #     (self.width -1,self.height -1)
-        # ]
-
-        corners = [(0, 0)]
+        corners = [
+            (0,0),
+            (self.width -1,0),
+            (0,self.height -1), 
+            (self.width -1,self.height -1)
+        ]
 
         for corner in corners:
             car = next(

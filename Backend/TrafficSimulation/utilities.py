@@ -4,4 +4,4 @@ from enum import Enum
 Directions = Enum('Directions', ['UP', 'RIGHT', 'LEFT', 'DOWN'])
 
 # Stoplight Colors
-Colors = Enum('Colors', ['GREEN', 'YELLOW', 'RED'])
+Colors = Enum('Colors', ['GREEN', 'RED'])
