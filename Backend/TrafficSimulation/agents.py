@@ -27,11 +27,6 @@ class Car(Agent):
 
     def action(self) -> None:
         if len(self.route) == 0: return
-        
-        pos = self.route.pop()
-        self.move(pos)
-
-        return
 
         # -- State and Sensoring --
         
@@ -45,39 +40,34 @@ class Car(Agent):
         )
         
         if stoplight is not None:
-            if stoplight.state == Colors.RED or stoplight.state == Colors.YELLOW:
+            if stoplight.state == Colors.RED:
                 self.wait()
                 return
 
-        # Turn directionals if taking a turn in at most 5 steps
-        if self.turn is None:
-            limit = 5
-            
-            for x, y in self.route:
-                if limit == 0: break
-
-                if x != self.pos[0]:
-                    if x < self.pos[0]:
-                        self.turn_directional(Directions.LEFT)
-                    else:
-                        self.turn_directional(Directions.RIGHT)
-                    break
-                elif y != self.pos[1]:
-                    if y < self.pos[1]:
-                        self.turn_directional(Directions.UP)
-                    else:
-                        self.turn_directional(Directions.DOWN)
-                    break
-
-                limit -= 1
-
+        # TODO - Turn directionals if taking a turn in at most 5 steps
 
         neighbors = self.model.grid.get_neighborhood(self.pos, 
                                                      moore=False, 
                                                      include_center=False)
 
         # -- Decision Making --
-    
+        pos = self.route.pop()
+
+        car = next(
+            filter(
+                lambda x: type(x) == Car, 
+                self.model.grid.get_cell_list_contents([pos])
+            ), 
+            None
+        )
+
+        if car is not None:
+            self.route.append(pos)
+            self.wait()
+            return
+
+        self.move(pos)
+
         pass
 
     def move(self, pos) -> None:
@@ -147,19 +137,13 @@ class Stoplight(Agent):
         super().__init__(unique_id, model)
         self.state = state
         self.timer = timer
-        self.counter = 0
+        self.count = 0
     
     def change_state(self) -> None:
         self.state = Colors(self.state.value % len(Colors) + 1)
 
     def step(self) -> None:
-        # TODO - Toggle state using counter
-        if self.state == Colors.GREEN and self.counter == self.timer - 2:
-            self.change_state(self)
-        elif self.state == Colors.YELLOW and self.counter == self.timer:
-            self.change_state(self)
-            self.counter = 0
-        elif self.state == Colors.RED and self.counter == self.timer:
-            self.change_state(self)
-            self.counter = 0
+        self.count = (self.count + 1) % self.timer
+        if self.count == 0:
+            self.change_state()
         pass
