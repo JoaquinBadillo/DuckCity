@@ -1,4 +1,4 @@
-FROM python:3.8.10-slim-buster
+FROM python:3.10.12-slim-buster
 RUN mkdir /app
 WORKDIR /app
 COPY requirements.txt /app

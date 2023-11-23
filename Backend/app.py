@@ -7,14 +7,38 @@
 # Last Update: 19/Nov/2023
 # Joaquín Badillo
 
-from flask import Flask, request, jsonify, abort, make_response
+from flask import Flask, request, jsonify, abort
+from flask.logging import default_handler
+
+# dictConfig({
+#     'version': 1,
+#     'formatters': {'default': {
+#         'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+#     }},
+#     'handlers': {'wsgi': {
+#         'class': 'logging.StreamHandler',
+#         'stream': 'ext://flask.logging.wsgi_errors_stream',
+#         'formatter': 'default'
+#     }},
+#     'root': {
+#         'level': 'INFO',
+#         'handlers': ['wsgi']
+#     }
+# })
+
+from TrafficSimulation.agents import Car, Destination, Obstacle, Road, Stoplight
+from TrafficSimulation.model import TrafficModel
+
+import logging
+import sys
 
 # Global Variables
 types = {
-    "car": type(None),
-    "obstacle": type(None),
-    "road": type(None),
-    "stoplight": type(None),
+    "car": type(Car),
+    "destination": type(Destination),
+    "obstacle": type(Obstacle),
+    "road": type(Road),
+    "stoplight": type(Stoplight),
 }
 
 model_params = {
@@ -26,10 +50,26 @@ model_params = {
 model = None
 currentStep = 0
 
-app = Flask(__name__)
+app = Flask("app")
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter(
+    '%(name)s'
+))
+app.logger.addHandler(handler)
+app.logger.setLevel(logging.DEBUG)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return jsonify({"message": "Resource not found"}), 404
+
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({"message": "Bad request"}), 400
 
 @app.route('/init', methods=['POST'])
 def initModel():
+    app.logger.info("GOT REQUEST")
     global model_params, model, currentStep
 
     if request.method == 'POST':
@@ -37,7 +77,7 @@ def initModel():
             model_params[key] = int(request.form.get(key, model_params[key]))
 
         # TODO - Initialize model (Requires a model lol)
-        model = None
+        model = TrafficModel(model_params)
 
         currentStep = 0
         return jsonify({"message": "Model Initialized"})
@@ -49,10 +89,10 @@ def getAgents(agentType):
 
     if request.method == 'GET':
         if model is None:
-            abort(make_response(jsonify(message="Model not initialized"), 400))
+            abort(400)
 
         if agentType not in types:
-            abort(make_response(jsonify(message="Invalid Agent Type"), 400))
+            abort(400)
 
         agentPositions = [
             {"id": str(a.unique_id), "x": x, "y":1, "z":z} for a, (x, z)
