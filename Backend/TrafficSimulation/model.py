@@ -127,6 +127,8 @@ class TrafficModel(Model):
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                         self.destinations.append((c, self.height - r - 1))
 
+        
+        self.corners = [(0,0), (self.width -1,0), (0,self.height -1), (self.width -1,self.height -1)]
         self.running = True
 
     def step(self):
@@ -146,33 +148,25 @@ class TrafficModel(Model):
         if self.num_steps % 10 != 1:
             return
         
-        corners = [
-            (0,0),
-            (self.width -1,0),
-            (0,self.height -1), 
-            (self.width -1,self.height -1)
-        ]
+        valid_corners = filter(
+            lambda cell: not any(x for x in self.grid.get_cell_list_contents([cell]) 
+                                 if isinstance(x, Car)),
+            self.corners
+        )
 
-        for corner in corners:
-            car = next(
-                filter(lambda agent: type(agent) == Car, self.grid.get_cell_list_contents([corner])),
-                None
+        for corner in valid_corners:
+            agent = Car(
+                f"car_{self.agent_id}", 
+                self,
+                self.random.choice(self.destinations)
             )
 
-            if car is None:
-                agent = Car(
-                    f"car_{self.agent_id}", 
-                    self,
-                    self.random.choice(self.destinations)
-                )
-
-                self.grid.place_agent(agent, corner)
-                agent.route = self.gps.astar(agent.pos, agent.destination)
-                self.schedule.add(agent)
-
-                self.num_agents += 1
-                self.agent_id += 1
-                self.added_agents+=1
+            self.grid.place_agent(agent, corner)
+            agent.route = self.gps.astar(agent.pos, agent.destination)
+            self.schedule.add(agent)
+            self.num_agents += 1
+            self.agent_id += 1
+            self.added_agents+=1
 
         if self.added_agents == 0: 
             self.running = False
