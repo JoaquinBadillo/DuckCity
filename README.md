@@ -29,7 +29,7 @@ docker compose up
 ```bash	
 cd Backend && \
 docker build -t multiagentes . && \
-docker run -p 8080:8080 multiagentes
+docker run -v $(pwd):/app -p 8080:8080 multiagentes
 ```
 
 #### Usando venv
