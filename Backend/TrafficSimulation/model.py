@@ -12,7 +12,7 @@ from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 
-from agents import (
+from .agents import (
     Car,
     Destination,
     Obstacle,
@@ -20,19 +20,18 @@ from agents import (
     Stoplight
 )
 
-from utilities import (
+from .utilities import (
     Colors,
     Directions
 )
 
-from pathfinder import GPS
+from .pathfinder import GPS
 
 import json
 import os
 
 class TrafficModel(Model):
     def __init__(self,
-                 num_agents=10,
                  width=50,
                  height=50):
         super().__init__()
@@ -46,19 +45,21 @@ class TrafficModel(Model):
         
         # Stats
         self.num_steps = 0
-        self.num_agents = num_agents
+        self.num_agents = 0
         self.agent_id = 1
         self.added_agents = 0
         self.num_arrivals = 0
         self.traffic_lights = []
         self.destinations = []
 
+        self.arrived_agents = []
+
         # Load map from file
         dataDictionary = json.load(
-            open(f"{os.getcwd()}/city_files/mapDictionary.json")
+            open(f"{os.path.dirname(__file__)}/city_files/mapDictionary.json")
         )
 
-        with open(f'{os.getcwd()}/city_files/2021_base2.txt') as city:
+        with open(f'{os.path.dirname(__file__)}/city_files/2021_base2.txt') as city:
             lines = city.readlines()
             self.width = len(lines[0])-1
             self.height = len(lines)
@@ -105,20 +106,17 @@ class TrafficModel(Model):
                         self.grid.place_agent(agent, (c, self.height - r - 1))
 
                     elif col in ["S", "s"]:
-                        agent = Stoplight(f"tl_{r*self.width+c}", self, Colors.GREEN, int(dataDictionary[col]))
-                        self.grid.place_agent(agent, (c, self.height - r - 1))
-                        self.schedule.add(agent)
-                        self.traffic_lights.append(agent)
+                        stoplight = Stoplight(f"tl_{r*self.width+c}", self, Colors.GREEN, int(dataDictionary[col]))
+                        self.grid.place_agent(stoplight, (c, self.height - r - 1))
+                        self.traffic_lights.append(stoplight)
 
                         if col == "S":
                             road = Road(f"r_{r*self.width+c}", self, (Directions.UP, Directions.DOWN))
                             self.grid.place_agent(road, (c, self.height - r - 1))
-                            self.schedule.add(road)
-                            agent.state = Colors.RED
+                            stoplight.state = Colors.RED
                         else:
                             road = Road(f"r_{r*self.width+c}", self, (Directions.LEFT, Directions.RIGHT))
                             self.grid.place_agent(road, (c, self.height - r - 1))
-                            self.schedule.add(road)                        
                         
                     elif col == "#":
                         agent = Obstacle(f"ob_{r*self.width+c}", self)
@@ -132,15 +130,16 @@ class TrafficModel(Model):
         self.running = True
 
     def step(self):
-        for agent in self.schedule.agents:
-            if type(agent) == Car:
-                if agent.pos == agent.destination:
-                    self.num_arrivals += 1
-                    self.schedule.remove(agent)
-                    self.grid.remove_agent(agent)
-                    self.num_agents -= 1
-                    continue
-
+        while (len(self.arrived_agents) > 0):
+            agent = self.arrived_agents.pop()
+            self.num_arrivals += 1
+            self.schedule.remove(agent)
+            self.grid.remove_agent(agent)
+            self.num_agents -= 1
+        
+        for stoplight in self.traffic_lights:
+            stoplight.step()
+            
         self.schedule.step()
         self.num_steps += 1
 

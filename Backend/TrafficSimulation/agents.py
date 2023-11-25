@@ -6,12 +6,12 @@
 
 from mesa import Agent
 
-from utilities import (
+from .utilities import (
     Directions,
     Colors
 )
 
-from typing import List
+from typing import List, Tuple
 
 class Car(Agent):
     def __init__(self, unique_id, model, destination) -> None:
@@ -72,18 +72,20 @@ class Car(Agent):
 
     def move(self, pos) -> None:
         self.model.grid.move_agent(self, pos)
+        if pos == self.destination: self.model.arrived_agents.append(self)
 
-    def calculate_route(self, blockages: List[int] = None) -> None:
-        temp = []
+    def calculate_route(self, neighborhood = None) -> None:    
+        obstacles = set(
+            agent.pos for agent in 
+            self.model.grid.get_cell_list_contents(neighborhood) 
+            if isinstance(agent, Car) or isinstance(agent, Stoplight)
+        ) if neighborhood is not None else set()
 
-        # Use custom blockages for A* to avoid clustered routes on recalculation
-        if blockages is not None:
-            for idx, position in enumerate(blockages):
-                agent = Obstacle(f"temp{idx}", self.model)
-                temp.append(agent)
-                self.model.grid.place_agent(agent, position)
 
-        path = self.model.gps.astar(self.pos, self.destination)
+        def cost(start, neighbor, obstacles = obstacles) -> int:
+            return 4 if neighbor in obstacles else (start[0] - neighbor[0]) ** 2 + (start[1] - neighbor[1]) ** 2
+
+        path = self.model.gps.astar(self.pos, self.destination, cost=cost)
         
         if self.route is None:
             self.route = path
@@ -93,9 +95,6 @@ class Car(Agent):
         elif len(path) < 1.3 * len(self.route):
             self.route = path
 
-        # Temp Cleanup
-        for agent in temp:
-            self.model.grid.remove_agent(agent)
     
     def turn_directional(self, direction) -> None:
         self.turn = direction

@@ -1,0 +1,6 @@
+{
+    "name": "TrafficSim",
+    "dockerComposeFile": "compose.yaml",
+    "service": "app",
+    "workspaceFolder": "/workspace"
+}
