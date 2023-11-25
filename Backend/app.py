@@ -13,11 +13,12 @@ from TrafficSimulation.model import TrafficModel
 
 # Global Variables
 
-# Maps each agent str type to a dictionary with the type and a reducer function
-# Its cool this way, because we can add dynamically add agents and data to serve
+# Maps each agent str type to a dictionary
+# Its cool this way, because we can dynamically add agents and data to serve
 agents = {
     "car": {
         "type": Car,
+        "collection": None,
         "reducer": lambda agent: {
             "id": agent.unique_id, 
             "x": agent.pos[0],
@@ -27,6 +28,7 @@ agents = {
     },
     "stoplight": {
         "type": Stoplight,
+        "collection": None,
         "reducer": lambda agent: {
             "id": agent.unique_id,
             "color": agent.state.name.lower()
@@ -52,6 +54,9 @@ def initModel():
 
     if request.method == 'POST':
         model = TrafficModel()
+        agents["car"]["collection"] = model.schedule.agents
+        agents["stoplight"]["collection"] = model.traffic_lights
+        
         return jsonify({"message": "Model Initialized"})
 
 @app.route('/agents/<agentType>', methods=['GET'])
@@ -60,18 +65,17 @@ def getAgents(agentType):
     agentType == request.view_args['agentType']
 
     if request.method == 'GET':
-        if model is None:
-            abort(400)
-
-        if agentType not in agents:
-            abort(400)
+        # Handle bad requests
+        if model is None: abort(400)
+        if agentType not in agents: abort(400)
 
         datatype = agents[agentType]['type']
         reducer = agents[agentType]['reducer']
+        collection = agents[agentType]['collection']
 
         data = map(
             reducer,
-            [agent for agent in model.schedule.agents if isinstance(agent, datatype)]
+            [agent for agent in collection if isinstance(agent, datatype)]
         )
 
         return jsonify({'positions': list(data)})
