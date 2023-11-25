@@ -52,6 +52,8 @@ class TrafficModel(Model):
         self.traffic_lights = []
         self.destinations = []
 
+        self.arrived_agents = []
+
         # Load map from file
         dataDictionary = json.load(
             open(f"{os.path.dirname(__file__)}/city_files/mapDictionary.json")
@@ -104,15 +106,14 @@ class TrafficModel(Model):
                         self.grid.place_agent(agent, (c, self.height - r - 1))
 
                     elif col in ["S", "s"]:
-                        agent = Stoplight(f"tl_{r*self.width+c}", self, Colors.GREEN, int(dataDictionary[col]))
-                        self.grid.place_agent(agent, (c, self.height - r - 1))
-                        self.schedule.add(agent)
-                        self.traffic_lights.append(agent)
+                        stoplight = Stoplight(f"tl_{r*self.width+c}", self, Colors.GREEN, int(dataDictionary[col]))
+                        self.grid.place_agent(stoplight, (c, self.height - r - 1))
+                        self.traffic_lights.append(stoplight)
 
                         if col == "S":
                             road = Road(f"r_{r*self.width+c}", self, (Directions.UP, Directions.DOWN))
                             self.grid.place_agent(road, (c, self.height - r - 1))
-                            agent.state = Colors.RED
+                            stoplight.state = Colors.RED
                         else:
                             road = Road(f"r_{r*self.width+c}", self, (Directions.LEFT, Directions.RIGHT))
                             self.grid.place_agent(road, (c, self.height - r - 1))
@@ -129,15 +130,16 @@ class TrafficModel(Model):
         self.running = True
 
     def step(self):
-        for agent in self.schedule.agents:
-            if type(agent) == Car:
-                if agent.pos == agent.destination:
-                    self.num_arrivals += 1
-                    self.schedule.remove(agent)
-                    self.grid.remove_agent(agent)
-                    self.num_agents -= 1
-                    continue
-
+        while (len(self.arrived_agents) > 0):
+            agent = self.arrived_agents.pop()
+            self.num_arrivals += 1
+            self.schedule.remove(agent)
+            self.grid.remove_agent(agent)
+            self.num_agents -= 1
+        
+        for stoplight in self.traffic_lights:
+            stoplight.step()
+            
         self.schedule.step()
         self.num_steps += 1
 
