@@ -16,12 +16,13 @@ public abstract class ServerData {
 
 [Serializable]
 public class AgentData : ServerData {
-
-    public AgentData(string id, float x, float y, float z) {
+    public bool arrived;
+    public AgentData(string id, float x, float y, float z, bool arrived) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.z = z;
+        this.arrived = arrived;
     }
 }
 
@@ -48,6 +49,7 @@ public class AgentController : MonoBehaviour {
     string updateEndpoint = "/update";
     string sendConfigEndpoint = "/init";
     DataList<AgentData> agentsData;
+    Stack<string> DeathNote;
     DataList<StoplightData> stoplightData;
     Dictionary<string, GameObject> agents;
     Dictionary<string, GameObject> stoplights;
@@ -72,6 +74,7 @@ public class AgentController : MonoBehaviour {
 
         timer = timeToUpdate;
 
+        DeathNote = new Stack<string>();
         // Launches a couroutine to send the configuration to the server.
         StartCoroutine(SendConfiguration());
     }
@@ -80,6 +83,15 @@ public class AgentController : MonoBehaviour {
         if(timer < 0) {
             timer = timeToUpdate;
             updated = false;
+
+            while (DeathNote.Count > 0){
+                string targetInSight = DeathNote.Pop();
+                Destroy(agents[targetInSight]);
+                agents.Remove(targetInSight);
+                prevPositions.Remove(targetInSight);
+                currPositions.Remove(targetInSight);
+            }
+
             StartCoroutine(UpdateSimulation());
         }
 
@@ -99,7 +111,6 @@ public class AgentController : MonoBehaviour {
                 agents[agent.Key].transform.localPosition = interpolated;
                 if(direction != Vector3.zero) agents[agent.Key].transform.rotation = Quaternion.LookRotation(direction);
             }
-
             // float t = (timer / timeToUpdate);
             // dt = t * t * ( 3f - 2f*t);
         }
@@ -113,7 +124,7 @@ public class AgentController : MonoBehaviour {
             Debug.Log(www.error);
         } else {
             StartCoroutine(GetCars());
-            StartCoroutine(GetStoplights());
+            //StartCoroutine(GetStoplights());
         }
     }
 
@@ -140,22 +151,21 @@ public class AgentController : MonoBehaviour {
             Debug.Log("Getting Agents positions");
 
             // Once the configuration has been sent, it launches a coroutine to get the agents data.
-            // StartCoroutine(GetCars()); -- Uncomment if cars are initialized before 1st step
-            StartCoroutine(GetStoplights());
+             StartCoroutine(GetCars()); //-- Uncomment if cars are initialized before 1st step
+            //StartCoroutine(GetStoplights());
         }
     }
 
     IEnumerator GetCars() {
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint + "car");
         yield return www.SendWebRequest();
- 
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
         else {
             agentsData = JsonUtility.FromJson<DataList<AgentData>>(www.downloadHandler.text);
             foreach(AgentData agent in agentsData.data) {
                 Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
-                    if(!started) {
+                    if(!agents.ContainsKey(agent.id)) {
                         prevPositions[agent.id] = newAgentPosition;
                         agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
                     } else {
@@ -164,8 +174,9 @@ public class AgentController : MonoBehaviour {
                             prevPositions[agent.id] = currentPosition;
                         currPositions[agent.id] = newAgentPosition;
                     }
+                    if (agent.arrived) DeathNote.Push(agent.id);
             }
-            if(!started) started = true;
+            updated = true;
         }
     }
 

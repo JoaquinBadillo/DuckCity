@@ -77,7 +77,10 @@ class Car(Agent):
 
     def move(self, pos) -> None:
         self.model.grid.move_agent(self, pos)
-        if pos == self.destination: self.model.arrived_agents.append(self)
+        if pos == self.destination: 
+            self.model.arrived_agents.append(self)
+            self.arrived = True
+            print("sha shegue")
 
     def calculate_route(self, neighborhood = None) -> None:    
         obstacles = set(
