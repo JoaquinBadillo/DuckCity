@@ -23,7 +23,8 @@ agents = {
             "id": agent.unique_id, 
             "x": agent.pos[0],
             "y": 0,
-            "z": agent.pos[1]
+            "z": agent.pos[1],
+            "arrived": agent.arrived
         }
     },
     "stoplight": {

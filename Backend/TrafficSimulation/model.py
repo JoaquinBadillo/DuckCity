@@ -134,6 +134,26 @@ class TrafficModel(Model):
         self.corners = [(0,0), (self.width -1,0), (0,self.height -1), (self.width -1,self.height -1)]
         self.running = True
 
+        valid_corners = filter(
+            lambda cell: not any(x for x in self.grid.get_cell_list_contents([cell]) 
+                                 if isinstance(x, Car)),
+            self.corners
+        )
+
+        for corner in valid_corners:
+            agent = Car(
+                f"car_{self.agent_id}", 
+                self,
+                self.random.choice(self.destinations)
+            )
+
+            self.grid.place_agent(agent, corner)
+            agent.route = self.gps.astar(agent.pos, agent.destination)
+            self.schedule.add(agent)
+            self.num_agents += 1
+            self.agent_id += 1
+            self.added_agents+=1
+
     def step(self):
         while (len(self.arrived_agents) > 0):
             agent = self.arrived_agents.pop()
@@ -148,7 +168,7 @@ class TrafficModel(Model):
         self.schedule.step()
         self.num_steps += 1
 
-        if self.num_steps % self.agent_cycle != 1:
+        if self.num_steps % self.agent_cycle != 0:
             return
         
         valid_corners = filter(
