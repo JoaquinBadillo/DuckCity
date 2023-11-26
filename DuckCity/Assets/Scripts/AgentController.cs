@@ -124,7 +124,7 @@ public class AgentController : MonoBehaviour {
             Debug.Log(www.error);
         } else {
             StartCoroutine(GetCars());
-            //StartCoroutine(GetStoplights());
+            StartCoroutine(GetStoplights());
         }
     }
 
@@ -151,8 +151,8 @@ public class AgentController : MonoBehaviour {
             Debug.Log("Getting Agents positions");
 
             // Once the configuration has been sent, it launches a coroutine to get the agents data.
-             StartCoroutine(GetCars()); //-- Uncomment if cars are initialized before 1st step
-            //StartCoroutine(GetStoplights());
+             StartCoroutine(GetCars());
+            StartCoroutine(GetStoplights());
         }
     }
 
@@ -189,7 +189,7 @@ public class AgentController : MonoBehaviour {
         else {
             stoplightData = JsonUtility.FromJson<DataList<StoplightData>>(www.downloadHandler.text);
             foreach(StoplightData stoplight in stoplightData.data) {
-                Vector3 newStoplightPosition = new Vector3(stoplight.x, stoplight.y, stoplight.z - 1);
+                Vector3 newStoplightPosition = new Vector3(stoplight.x, stoplight.y, stoplight.z);
 
                 if (!stoplights.ContainsKey(stoplight.id))
                     stoplights[stoplight.id] = Instantiate(stoplightPrefab, newStoplightPosition, Quaternion.identity);
@@ -200,5 +200,7 @@ public class AgentController : MonoBehaviour {
 
             }
         }
+
+        updated = true;
     }
 }
