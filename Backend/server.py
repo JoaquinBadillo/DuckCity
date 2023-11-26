@@ -4,6 +4,8 @@ from mesa.visualization import CanvasGrid, BarChartModule
 from mesa.visualization import ModularServer
 import os
 
+import argparse
+
 def agent_portrayal(agent):
     if agent is None: return
     
@@ -38,18 +40,23 @@ def agent_portrayal(agent):
 
     return portrayal
 
-width = 0
-height = 0
+if __name__ == "__main__":
+    width = 0
+    height = 0
 
-with open(f'{os.path.dirname(__file__)}/TrafficSimulation/city_files/2021_base2.txt') as baseFile:
-    lines = baseFile.readlines()
-    width = len(lines[0])-1
-    height = len(lines)
+    parser = argparse.ArgumentParser(description='Run the traffic simulation.')
+    parser.add_argument('--cycles', type=int, default=10, help='Number of cycles to run the simulation for.')
+    args = parser.parse_args()
 
-print(width, height)
-grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
+    with open(f'{os.path.dirname(__file__)}/TrafficSimulation/city_files/2021_base2.txt') as baseFile:
+        lines = baseFile.readlines()
+        width = len(lines[0])-1
+        height = len(lines)
 
-server = ModularServer(TrafficModel, [grid], "Traffic")
-                       
-server.port = 8521 # The default
-server.launch()
+    print(width, height)
+    grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
+
+    server = ModularServer(TrafficModel, [grid], "Traffic", {"agent_cycle": args.cycles})
+                        
+    server.port = 8521 # The default
+    server.launch()

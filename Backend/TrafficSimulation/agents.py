@@ -63,7 +63,12 @@ class Car(Agent):
 
         if car is not None:
             self.route.append(pos)
-            self.wait()
+
+            x, y = pos
+            if x == self.pos[0] or y == self.pos[1]:
+                self.calculate_route(neighbors)
+            
+
             return
 
         self.move(pos)
