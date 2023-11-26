@@ -22,7 +22,7 @@ agents = {
         "reducer": lambda agent: {
             "id": agent.unique_id, 
             "x": agent.pos[0],
-            "y": 1,
+            "y": 0,
             "z": agent.pos[1],
         }
     },
@@ -54,8 +54,8 @@ def initModel():
 
     if request.method == 'POST':
         model = TrafficModel()
-        agents["car"]["collection"] = model.schedule.agents
-        agents["stoplight"]["collection"] = model.traffic_lights
+        agents["car"]["collection"] = lambda: model.schedule.agents
+        agents["stoplight"]["collection"] = lambda: model.traffic_lights
         
         return jsonify({"message": "Model Initialized"})
 
@@ -71,14 +71,14 @@ def getAgents(agentType):
 
         datatype = agents[agentType]['type']
         reducer = agents[agentType]['reducer']
-        collection = agents[agentType]['collection']
+        collect = agents[agentType]['collection']
 
         data = map(
             reducer,
-            [agent for agent in collection if isinstance(agent, datatype)]
+            [agent for agent in collect() if isinstance(agent, datatype)]
         )
 
-        return jsonify({'positions': list(data)})
+        return jsonify({'data': list(data)})
 
 @app.route('/stats', methods=['GET'])
 def getStats():

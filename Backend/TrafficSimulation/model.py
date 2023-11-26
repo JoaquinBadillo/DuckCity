@@ -33,7 +33,8 @@ import os
 class TrafficModel(Model):
     def __init__(self,
                  width=50,
-                 height=50):
+                 height=50,
+                 agent_cycle=10):
         super().__init__()
 
         self.grid = MultiGrid(width, height, True)
@@ -51,6 +52,8 @@ class TrafficModel(Model):
         self.num_arrivals = 0
         self.traffic_lights = []
         self.destinations = []
+
+        self.agent_cycle = agent_cycle
 
         self.arrived_agents = []
 
@@ -145,7 +148,7 @@ class TrafficModel(Model):
         self.schedule.step()
         self.num_steps += 1
 
-        if self.num_steps % 10 != 1:
+        if self.num_steps % self.agent_cycle != 1:
             return
         
         valid_corners = filter(

@@ -9,22 +9,15 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 
-[Serializable]
-public class AgentData {
-    /*
-    The AgentData class is used to store the data of each agent.
-    
-    Attributes:
-        id (string): The id of the agent.
-        x (float): The x coordinate of the agent.
-        y (float): The y coordinate of the agent.
-        z (float): The z coordinate of the agent.
-    */
+public abstract class ServerData {
     public string id;
     public float x, y, z;
+}
 
-    public AgentData(string id, float x, float y, float z)
-    {
+[Serializable]
+public class AgentData : ServerData {
+
+    public AgentData(string id, float x, float y, float z) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -33,69 +26,49 @@ public class AgentData {
 }
 
 [Serializable]
-
-public class AgentsData {
-    /*
-    The AgentsData class is used to store the data of all the agents.
-
-    Attributes:
-        positions (list): A list of AgentData objects.
-    */
-    public List<AgentData> positions;
-
-    public AgentsData() => this.positions = new List<AgentData>();
+public class StoplightData : ServerData {
+    public string color;
+    public StoplightData(string id, string color) {
+        this.id = id;
+        this.color = color;
+    }
+}
+}
+[Serializable]
+public class DataList<T> where T : ServerData {
+    public List<T> data;
+    public DataList<T>() => this.data = new List<T>();
 }
 
-public class AgentController : MonoBehaviour {
-    /*
-    The AgentController class is used to control the agents in the simulation.
 
-    Attributes:
-        serverUrl (string): The url of the server.
-        getAgentsEndpoint (string): The endpoint to get the agents data.
-        getObstaclesEndpoint (string): The endpoint to get the obstacles data.
-        sendConfigEndpoint (string): The endpoint to send the configuration.
-        updateEndpoint (string): The endpoint to update the simulation.
-        agentsData (AgentsData): The data of the agents.
-        obstacleData (AgentsData): The data of the obstacles.
-        agents (Dictionary<string, GameObject>): A dictionary of the agents.
-        prevPositions (Dictionary<string, Vector3>): A dictionary of the previous positions of the agents.
-        currPositions (Dictionary<string, Vector3>): A dictionary of the current positions of the agents.
-        updated (bool): A boolean to know if the simulation has been updated.
-        started (bool): A boolean to know if the simulation has started.
-        agentPrefab (GameObject): The prefab of the agents.
-        obstaclePrefab (GameObject): The prefab of the obstacles.
-        floor (GameObject): The floor of the simulation.
-        NAgents (int): The number of agents.
-        width (int): The width of the simulation.
-        height (int): The height of the simulation.
-        timeToUpdate (float): The time to update the simulation.
-        timer (float): The timer to update the simulation.
-        dt (float): The delta time.
-    */
-    string serverUrl = "http://localhost:8080";
-    string getAgentsEndpoint = "/agents";
-    string sendConfigEndpoint = "/init";
+public class AgentController : MonoBehaviour {
+    [Header("Server Configuration")]
+    [SerializeField] string server = "http://localhost:8080";
+    string getAgentsEndpoint = "/agents/";
     string updateEndpoint = "/update";
-    AgentsData agentsData, obstacleData;
+    string sendConfigEndpoint = "/init";
+    DataList<AgentData> agentsData;
+    DataList<StoplightData> stoplightData;
     Dictionary<string, GameObject> agents;
+    Dictionary<string, GameObject> stoplights;
     Dictionary<string, Vector3> prevPositions, currPositions;
 
     bool updated = false, started = false;
 
     public GameObject agentPrefab, obstaclePrefab, floor;
-    public int NAgents, width, height;
+    public int NAgents;
     public float timeToUpdate = 5.0f;
     private float timer, dt;
 
     void Start() {
-        agentsData = new AgentsData();
-        obstacleData = new AgentsData();
+        agentsData = new DataList<AgentData>();
+        stoplightData = new DataList<StoplightData>();
 
         prevPositions = new Dictionary<string, Vector3>();
         currPositions = new Dictionary<string, Vector3>();
 
         agents = new Dictionary<string, GameObject>();
+        stoplights = new Dictionary<string, GameObject>();
 
         floor.transform.localScale = new Vector3((float)width/10, 1, (float)height/10);
         floor.transform.localPosition = new Vector3((float)width/2-0.5f, 0, (float)height/2-0.5f);
@@ -134,20 +107,24 @@ public class AgentController : MonoBehaviour {
             // dt = t * t * ( 3f - 2f*t);
         }
     }
+
+    public AddStoplight(string id, GameObject stoplight) {
+        stoplights.Add(id, stoplight);
+    }
  
-    IEnumerator UpdateSimulation()
-    {
+    IEnumerator UpdateSimulation() {
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + updateEndpoint);
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
-        else
-            StartCoroutine(GetAgentsData());
+            return;
+        
+        StartCoroutine(GetAgentsData());
+        StartCoroutine(GetStoplightsData());
     }
 
-    IEnumerator SendConfiguration()
-    {
+    IEnumerator SendConfiguration() {
         /*
         The SendConfiguration method is used to send the configuration to the server.
 
@@ -156,8 +133,6 @@ public class AgentController : MonoBehaviour {
         WWWForm form = new WWWForm();
 
         form.AddField("NAgents", NAgents.ToString());
-        form.AddField("width", width.ToString());
-        form.AddField("height", height.ToString());
 
         UnityWebRequest www = UnityWebRequest.Post(serverUrl + sendConfigEndpoint, form);
         www.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -172,28 +147,22 @@ public class AgentController : MonoBehaviour {
             Debug.Log("Getting Agents positions");
 
             // Once the configuration has been sent, it launches a coroutine to get the agents data.
-            StartCoroutine(GetAgentsData());
-            StartCoroutine(GetObstacleData());
+            StartCoroutine(GetAgentsData("car"));
+            StartCoroutine(GetAgentsData("stoplight"));
         }
     }
 
-    IEnumerator GetAgentsData() {
-        // The GetAgentsData method is used to get the agents data from the server.
-
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
+    IEnumerator GetCars() {
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint + "car");
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
         else {
-            // Once the data has been received, it is stored in the agentsData variable.
-            // Then, it iterates over the agentsData.positions list to update the agents positions.
-            agentsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
-
-            foreach(AgentData agent in agentsData.positions) {
+            agentsData = JsonUtility.FromJson<DataList<AgentData>>(www.downloadHandler.text);
+            foreach(AgentData agent in agentsData.data) {
                 Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
-
-                    if(!started){
+                    if(!started) {
                         prevPositions[agent.id] = newAgentPosition;
                         agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
                     } else {
@@ -203,26 +172,31 @@ public class AgentController : MonoBehaviour {
                         currPositions[agent.id] = newAgentPosition;
                     }
             }
-
-            updated = true;
             if(!started) started = true;
         }
     }
 
-    IEnumerator GetObstacleData() 
-    {
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint + "/obstacle");
+    IEnumerator GetStoplights() {
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint + "stoplight");
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
         else {
-            obstacleData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
-
-            Debug.Log(obstacleData.positions);
-
-            foreach(AgentData obstacle in obstacleData.positions)
-                Instantiate(obstaclePrefab, new Vector3(obstacle.x, obstacle.y, obstacle.z), Quaternion.identity);
+            stoplightData = JsonUtility.FromJson<DataList<StoplightData>>(www.downloadHandler.text);
+            foreach(StoplightData stoplight in stoplightData.data) {
+                Vector3 newStoplightPosition = new Vector3(stoplight.x, stoplight.y, stoplight.z);
+                    if(!started) {
+                        prevPositions[stoplight.id] = newStoplightPosition;
+                        stoplights[stoplight.id] = Instantiate(obstaclePrefab, newStoplightPosition, Quaternion.identity);
+                    } else {
+                        Vector3 currentPosition = new Vector3();
+                        if(currPositions.TryGetValue(stoplight.id, out currentPosition))
+                            prevPositions[stoplight.id] = currentPosition;
+                        currPositions[stoplight.id] = newStoplightPosition;
+                    }
+            }
+            if(!started) started = true;
         }
     }
 }
