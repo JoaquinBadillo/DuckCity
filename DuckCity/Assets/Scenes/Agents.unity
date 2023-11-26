@@ -152,12 +152,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d1708ca9eac13e44afc0301b304ea37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serverUrl: http://localhost:8080
   agentPrefab: {fileID: 7361239288800506316, guid: fd11a0dba19231e468d886459e50879c, type: 3}
-  obstaclePrefab: {fileID: 4336867535941437554, guid: 2d768fe0312856b4f8376f49378add94, type: 3}
+  stoplightPrefab: {fileID: 4023908546181906138, guid: 42f7bd2a49359a441b625393a36fc7fd, type: 3}
   floor: {fileID: 5730340390516350889, guid: a5e2bda499bf68847a3a26e62fa084ae, type: 3}
   NAgents: 10
-  width: 28
-  height: 28
   timeToUpdate: 2
 --- !u!4 &112445767
 Transform:
@@ -394,6 +393,7 @@ MonoBehaviour:
   building: {fileID: 4336867535941437554, guid: 2d768fe0312856b4f8376f49378add94, type: 3}
   stoplight: {fileID: 4023908546181906138, guid: 42f7bd2a49359a441b625393a36fc7fd, type: 3}
   tileSize: 1
+  agentController: {fileID: 0}
 --- !u!4 &2103525907
 Transform:
   m_ObjectHideFlags: 0

@@ -23,7 +23,7 @@ agents = {
             "id": agent.unique_id, 
             "x": agent.pos[0],
             "y": 0,
-            "z": agent.pos[1],
+            "z": agent.pos[1]
         }
     },
     "stoplight": {
@@ -31,6 +31,9 @@ agents = {
         "collection": None,
         "reducer": lambda agent: {
             "id": agent.unique_id,
+            "x": agent.pos[0],
+            "y": 0,
+            "z": agent.pos[1],
             "color": agent.state.name.lower()
         }
     }

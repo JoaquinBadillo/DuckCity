@@ -16,7 +16,7 @@ public class CityMaker : MonoBehaviour
     [SerializeField] GameObject stoplight;
     [SerializeField] int tileSize;
 
-    [[SerializeField] AgentController agentController;
+    [SerializeField] AgentController agentController;
 
     void Start() {
         MakeTiles(layout.text);
@@ -49,17 +49,11 @@ public class CityMaker : MonoBehaviour
                 position = new Vector3(x * tileSize, 0, y * tileSize);
                 tile = Instantiate(road, position, Quaternion.identity);
                 tile.transform.parent = transform;
-                tile = Instantiate(stoplight, position, Quaternion.identity);
-                tile.transform.parent = transform;
-                agentController.AddStoplight(id, tile);
                 x += 1;
             } else if (tiles[i] == 'S') {
                 position = new Vector3(x * tileSize, 0, y * tileSize);
                 tile = Instantiate(road, position, Quaternion.Euler(0, 90, 0));
                 tile.transform.parent = transform;
-                tile = Instantiate(stoplight, position, Quaternion.Euler(0, 90, 0));
-                tile.transform.parent = transform;
-                agentController.AddStoplight(id, tile);
                 x += 1;
             } else if (tiles[i] == 'D') {
                 position = new Vector3(x * tileSize, 0, y * tileSize);
