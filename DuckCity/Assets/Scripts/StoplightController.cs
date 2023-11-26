@@ -4,28 +4,25 @@ using UnityEngine;
 
 public class StoplightController : MonoBehaviour {
     [Header("Lights")]
-    Light lt;
-
-    public void Start() {
-        lt = GetComponentInChildren<Light>();
-    }
+    [SerializeField] Light lt;
 
     public void SetColor(string color) {
-        if (lt == null)
+        if (lt == null) {
             return;
+        }
 
         switch (color) {
             case "red":
                 lt.color = Color.red;
-                lt.intensity = 1.0f;
+                lt.intensity = 0.5f;
                 break;
             case "yellow":
                 lt.color = Color.yellow;
-                lt.intensity = 1.0f;
+                lt.intensity = 0.5f;
                 break;
             case "green":
                 lt.color = Color.green;
-                lt.intensity = 1.0f;
+                lt.intensity = 0.5f;
                 break;
             default:
                 lt.intensity = 0.0f;
