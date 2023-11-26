@@ -33,17 +33,17 @@ public class StoplightData : ServerData {
         this.color = color;
     }
 }
-}
+
 [Serializable]
 public class DataList<T> where T : ServerData {
     public List<T> data;
-    public DataList<T>() => this.data = new List<T>();
+    public DataList() => this.data = new List<T>();
 }
 
 
 public class AgentController : MonoBehaviour {
     [Header("Server Configuration")]
-    [SerializeField] string server = "http://localhost:8080";
+    [SerializeField] string serverUrl = "http://localhost:8080";
     string getAgentsEndpoint = "/agents/";
     string updateEndpoint = "/update";
     string sendConfigEndpoint = "/init";
@@ -55,7 +55,7 @@ public class AgentController : MonoBehaviour {
 
     bool updated = false, started = false;
 
-    public GameObject agentPrefab, obstaclePrefab, floor;
+    public GameObject agentPrefab, stoplightPrefab, floor;
     public int NAgents;
     public float timeToUpdate = 5.0f;
     private float timer, dt;
@@ -70,9 +70,6 @@ public class AgentController : MonoBehaviour {
         agents = new Dictionary<string, GameObject>();
         stoplights = new Dictionary<string, GameObject>();
 
-        floor.transform.localScale = new Vector3((float)width/10, 1, (float)height/10);
-        floor.transform.localPosition = new Vector3((float)width/2-0.5f, 0, (float)height/2-0.5f);
-        
         timer = timeToUpdate;
 
         // Launches a couroutine to send the configuration to the server.
@@ -107,21 +104,17 @@ public class AgentController : MonoBehaviour {
             // dt = t * t * ( 3f - 2f*t);
         }
     }
-
-    public AddStoplight(string id, GameObject stoplight) {
-        stoplights.Add(id, stoplight);
-    }
  
     IEnumerator UpdateSimulation() {
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + updateEndpoint);
         yield return www.SendWebRequest();
  
-        if (www.result != UnityWebRequest.Result.Success)
+        if (www.result != UnityWebRequest.Result.Success) {
             Debug.Log(www.error);
-            return;
-        
-        StartCoroutine(GetAgentsData());
-        StartCoroutine(GetStoplightsData());
+        } else {
+            StartCoroutine(GetCars());
+            StartCoroutine(GetStoplights());
+        }
     }
 
     IEnumerator SendConfiguration() {
@@ -147,8 +140,8 @@ public class AgentController : MonoBehaviour {
             Debug.Log("Getting Agents positions");
 
             // Once the configuration has been sent, it launches a coroutine to get the agents data.
-            StartCoroutine(GetAgentsData("car"));
-            StartCoroutine(GetAgentsData("stoplight"));
+            // StartCoroutine(GetCars()); -- Uncomment if cars are initialized before 1st step
+            StartCoroutine(GetStoplights());
         }
     }
 
@@ -185,18 +178,16 @@ public class AgentController : MonoBehaviour {
         else {
             stoplightData = JsonUtility.FromJson<DataList<StoplightData>>(www.downloadHandler.text);
             foreach(StoplightData stoplight in stoplightData.data) {
-                Vector3 newStoplightPosition = new Vector3(stoplight.x, stoplight.y, stoplight.z);
-                    if(!started) {
-                        prevPositions[stoplight.id] = newStoplightPosition;
-                        stoplights[stoplight.id] = Instantiate(obstaclePrefab, newStoplightPosition, Quaternion.identity);
-                    } else {
-                        Vector3 currentPosition = new Vector3();
-                        if(currPositions.TryGetValue(stoplight.id, out currentPosition))
-                            prevPositions[stoplight.id] = currentPosition;
-                        currPositions[stoplight.id] = newStoplightPosition;
-                    }
+                Vector3 newStoplightPosition = new Vector3(stoplight.x, stoplight.y, stoplight.z - 1);
+
+                if (!stoplights.ContainsKey(stoplight.id))
+                    stoplights[stoplight.id] = Instantiate(stoplightPrefab, newStoplightPosition, Quaternion.identity);
+
+                StoplightController stoplightController = stoplights[stoplight.id].GetComponent<StoplightController>();
+                if (stoplightController != null)
+                    stoplightController.SetColor(stoplight.color);
+
             }
-            if(!started) started = true;
         }
     }
 }
