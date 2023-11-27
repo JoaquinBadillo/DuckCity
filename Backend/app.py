@@ -10,6 +10,7 @@
 from flask import Flask, request, jsonify, abort
 from TrafficSimulation.agents import Car, Stoplight
 from TrafficSimulation.model import TrafficModel
+import argparse
 
 # Global Variables
 
@@ -41,6 +42,7 @@ agents = {
 }
 
 model = None
+agent_cycle = 10
 
 app = Flask("app")
 
@@ -54,10 +56,10 @@ def bad_request(e):
 
 @app.route('/init', methods=['POST'])
 def initModel():
-    global model
+    global model, agent_cycle
 
     if request.method == 'POST':
-        model = TrafficModel()
+        model = TrafficModel(agent_cycle=agent_cycle)
         agents["car"]["collection"] = lambda: model.schedule.agents
         agents["stoplight"]["collection"] = lambda: model.traffic_lights
         
@@ -107,4 +109,14 @@ def updateModel():
         })
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Run the server.')
+    parser.add_argument('--cycle', type=int, default=10, help='Agent cycle')
+    args = parser.parse_args()
+    if (agent_cycle := args.cycle) <= 1:
+        raise ValueError("Agent cycle must be greater than 1")
+
+    
+
+
+
     app.run(port="8080", debug=True)
