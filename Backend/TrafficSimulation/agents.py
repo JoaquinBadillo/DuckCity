@@ -2,7 +2,7 @@
 # Definition for the agents used in the traffic simulation.
 
 # Last Update: 20/Nov/2023
-# Joaquín Badillo
+# Joaquín Badillo, Pablo Bolio
 
 from mesa import Agent
 

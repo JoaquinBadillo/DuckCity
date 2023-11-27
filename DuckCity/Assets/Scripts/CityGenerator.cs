@@ -2,6 +2,8 @@
     City Generator
 
     Provided by Octavio Navarro and Gil Echeverría
+    Joaquín Badillo, Pablo Bolio
+    Last Update: 03/Nov/2023
 */
 
 using System.Collections;
