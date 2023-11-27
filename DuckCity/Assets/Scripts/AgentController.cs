@@ -1,6 +1,7 @@
 // TC2008B. Sistemas Multiagentes y Gráficas Computacionales
 // C# client to interact with Python. Based on the code provided by Sergio Ruiz.
 // Octavio Navarro. October 2023
+// Joaquin Badillo, Pablo Bolio
 
 using System;
 using System.Collections;
@@ -105,11 +106,10 @@ public class AgentController : MonoBehaviour {
                 Vector3 currentPosition = agent.Value;
                 Vector3 previousPosition = prevPositions[agent.Key];
 
-                Vector3 interpolated = Vector3.Lerp(previousPosition, currentPosition, dt);
+                Vector3 interpolated = agents[agent.Key].GetComponent<Car_Movement>().Lerp(previousPosition, currentPosition, dt);
                 Vector3 direction = currentPosition - interpolated;
 
-                agents[agent.Key].transform.localPosition = interpolated;
-                if(direction != Vector3.zero) agents[agent.Key].transform.rotation = Quaternion.LookRotation(direction);
+                agents[agent.Key].GetComponent<Car_Movement>().DuckMove(interpolated);
             }
             // float t = (timer / timeToUpdate);
             // dt = t * t * ( 3f - 2f*t);
@@ -167,7 +167,8 @@ public class AgentController : MonoBehaviour {
                 Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
                     if(!agents.ContainsKey(agent.id)) {
                         prevPositions[agent.id] = newAgentPosition;
-                        agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
+                        agents[agent.id] = Instantiate(agentPrefab, Vector3.zero, Quaternion.identity);
+                        agents[agent.id].GetComponent<Car_Movement>().Start();
                     } else {
                         Vector3 currentPosition = new Vector3();
                         if(currPositions.TryGetValue(agent.id, out currentPosition))

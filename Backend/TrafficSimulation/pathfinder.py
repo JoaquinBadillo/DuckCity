@@ -5,7 +5,7 @@
 # Uses the model to determine valid neighbors
 
 # Last Update: 21/Nov/2023
-# Joaquín Badillo
+# Joaquín Badillo, Pablo Bolio
 
 import heapq
 from .agents import Road, Obstacle, Destination

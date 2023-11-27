@@ -3,7 +3,7 @@
 
     Includes rotations, traslation and scaling matrices.
 
-    Gilberto Echeverria, Joaquín Badillo
+    Gilberto Echeverria, Joaquín Badillo, Pablo Bolio
     Last Update: 03/Nov/2023
 */
 

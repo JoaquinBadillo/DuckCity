@@ -4,7 +4,7 @@
     Applies transformations to the car and executes the wheel transformations
     on all wheels each frame.
 
-    Joaquín Badillo
+    Joaquín Badillo, Pablo Bolio
     Last Update: 15/Nov/2023
 */
 
@@ -13,43 +13,54 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Car_Movement : MonoBehaviour {
+    // Car Movement
+    [SerializeField] Vector3[] wheelOffset;
     [SerializeField] GameObject[] wheels;
-    [SerializeField] Vector2 velocity;
-    [SerializeField] Vector2 direction;
+    [SerializeField] GameObject wheelPrefab;
     [SerializeField] float angularSpeed = 1.0f;
     private Mesh mesh;
     private Vector3[] position;
     private Vector3[] basePosition;
     private Wheel_Movement[] wheelMovements;
+    bool started = false;
 
-    void Start() {
-        mesh = GetComponentInChildren<MeshFilter>().mesh;
-        position = mesh.vertices;
-        basePosition = new Vector3[position.Length];
-        for (int i = 0; i < position.Length; i++)
-            basePosition[i] = position[i];
+    // Lerp
+    Vector3 direction;
 
-        wheelMovements = new Wheel_Movement[wheels.Length];
+    public void Start() {
+        if (!started){
+            mesh = GetComponentInChildren<MeshFilter>().mesh;
+            position = mesh.vertices;
+            basePosition = new Vector3[position.Length];
+            for (int i = 0; i < position.Length; i++)
+                basePosition[i] = position[i];
 
-        for (int i = 0; i < wheels.Length; i++)
-            wheelMovements[i] = wheels[i].GetComponent<Wheel_Movement>();
+            wheels = new GameObject[4];
+            wheelMovements = new Wheel_Movement[4];
+
+            for (int i = 0; i < 4; i++){
+                wheels[i] = Instantiate(wheelPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+                wheelMovements[i] = wheels[i].GetComponent<Wheel_Movement>();
+                wheelMovements[i].Start();
+                wheelMovements[i].initialTranslation = wheelOffset[i];
+            }
+            started = true;
+        }
     }
 
-    void Update() {
-        float t = Time.time;
-        Matrix4x4 composite = ApplyTransforms(t);
-
+    public void DuckMove(Vector3 destination) {
+        Matrix4x4 composite = ApplyTransforms(destination);
         foreach (Wheel_Movement comp in wheelMovements)
-            comp.ApplyTransforms(velocity, composite, angularSpeed, t);   
+            comp.ApplyTransforms(composite, angularSpeed);   
     }
 
-    Matrix4x4 ApplyTransforms(float time) {
-        float y_angle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+    Matrix4x4 ApplyTransforms(Vector3 destination) {
+        float y_angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
 
         Matrix4x4 move = Transformations.TranslationMat(
-            velocity.x * time,
-            0,
-            velocity.y * time
+            destination.x,
+            destination.y,
+            destination.z
         );
 
         Matrix4x4 y_rotate = Transformations.RotateMat(
@@ -73,5 +84,21 @@ public class Car_Movement : MonoBehaviour {
         mesh.vertices = position;
 
         return composite;
+    }
+
+    public Vector3 Lerp(Vector3 origin, Vector3 destination, float t){
+        Vector3 direction = (destination - origin).normalized;
+        
+        if (direction != Vector3.zero){
+            this.direction = direction;
+        }
+
+        return origin + (destination - origin) * t;
+    }
+
+    private void OnDestroy() {
+        foreach (GameObject wheel in wheels){
+            Destroy(wheel);
+        }
     }
 }

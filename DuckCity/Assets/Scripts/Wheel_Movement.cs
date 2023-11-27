@@ -3,7 +3,7 @@
 
     Applies transformations to the wheels.
 
-    Joaquín Badillo
+    Joaquín Badillo, Pablo Bolio
     Last Update: 15/Nov/2023
 */
 
@@ -15,9 +15,9 @@ public class Wheel_Movement : MonoBehaviour {
     private Mesh mesh;
     private Vector3[] position;
     private Vector3[] basePosition;
-    [SerializeField] Vector3 initialTranslation;
+    public Vector3 initialTranslation;
 
-    void Start() {
+    public void Start() {
         mesh = GetComponentInChildren<MeshFilter>().mesh;
         position = mesh.vertices;
         basePosition = new Vector3[position.Length];
@@ -31,10 +31,9 @@ public class Wheel_Movement : MonoBehaviour {
     }
 
     // Uses the matrix computed by the car to reduce computations.
-    public void ApplyTransforms(Vector2 velocity, 
-                                Matrix4x4 carComposite, 
-                                float angSpeed, 
-                                float time) {
+    public void ApplyTransforms(Matrix4x4 carComposite, 
+                                float angSpeed) {
+        float time = Time.time;
         Matrix4x4 initial = Transformations.TranslationMat(
             initialTranslation.x,
             initialTranslation.y,
