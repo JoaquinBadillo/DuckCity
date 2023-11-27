@@ -80,7 +80,6 @@ class Car(Agent):
         if pos == self.destination: 
             self.model.arrived_agents.append(self)
             self.arrived = True
-            print("sha shegue")
 
     def calculate_route(self, neighborhood = None) -> None:    
         obstacles = set(
