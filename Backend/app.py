@@ -22,7 +22,7 @@ agents = {
         "reducer": lambda agent: {
             "id": agent.unique_id, 
             "x": agent.pos[0],
-            "y": 1,
+            "y": 0.3,
             "z": agent.pos[1],
             "arrived": agent.arrived
         }
