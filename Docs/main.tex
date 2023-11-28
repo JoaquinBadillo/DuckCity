@@ -9,6 +9,7 @@
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{apacite}
+\usepackage{bm}
 
 \newcommand{\myname}{Joaquín Badillo Granillo}
 
@@ -42,7 +43,6 @@
 \end{keywords}
 
 \section{Introducción}
-% Simulación multiagente para tráfico
 El rápido crecimiento urbano ha dado como resultado altas densidades poblacionales.
 En zonas centralizadas como la Ciudad de México, aunque la cercanía de los servicios
 es muy alta, la cantidad de vehículos que se trasladan por las calles ha hecho que
@@ -53,7 +53,7 @@ En este proyecto se consideró el problema de la movilidad urbana a partir de un
 multiagente utilizando la librería de mesa \cite[]{python-mesa-2020}. En esta simulación,
 los agentes toman decisiones con un cierto grado de autonomía a partir de un conjunto de reglas
 finitas y sencillas, como el respetar las señales de tránsito (en particular los semáforos) y 
-la navegación a partir de las rutas más cortas para alcanzar un destino, 
+la navegación a partir de las rutas más cortas para alcanzar un destino.
 
 Es entonces de nuestro interés observar si a partir de estas sencillas reglas y limitando el entendimiento 
 que tienen los agentes del ambiente a pequeñas vecindades, pueden emerger comportamientos egoístas que resulten
@@ -63,22 +63,63 @@ poblacional.
 
 \section{Diseño de Agentes}
 
+Para que los agentes puedan interactuar con su entorno, se representaron calles, edificios, destinos, semáforos y vehículos
+como agentes.
+
+Tanto los semáforos como los vehículos son capaces de cambiar su estado, pero únicamente los segundos tienen
+un objetivo: que es llegar su destino. Por esta razón, el diseño que es de nuestro interés es el de los vehículos, el cual
+se describe a detalle a continuación.
+
+\subsection{Capacidad Efectora (Actuadores)}
+
+Las acciones que puede realizar un vehículo están limitadas a:
+
 \begin{enumerate}
-    \item Esperar
+    \item Esperar.
     
-    \item Moverse
+    \item Moverse.
 
-    \item Calcular ruta
+    \item Calcular una ruta.
 
-    \item Llegar a destino
+    \item Llegar a destino.
 \end{enumerate}
 
+Esperar, moverse y llegar a su destino, son acciones sencillas y fáciles
+de implementar; mientras que el calculo de rutas permite una mayor libertad
+creativa. En esta simulación, los agentes calculan rutas a partir del algoritmo 
+de A*, usando generalmente el cuadrado de la norma $\ell^{2}$ como función de costos y 
+la norma $\ell^{1}$ como heurística. En caso de recalcular una ruta, un agente puede
+además usar la información de sus vecinos más próximos para incrementar el costo
+entre celdas.
 
-\subsection{Objetivo}
-\subsection{Capacidad Efectora (Actuadores)}
 \subsection{Percepción}
+Los vehículos son únicamente capaces de observar una vecindad en un radio de $\sqrt{2}$
+unidades (usando la norma $\ell^{2}$ como métrica). No obstante cuentan con un conocimiento
+previo de las calles que les permite calcular rutas eficientes (asumiendo que no hay otros
+vehículos).
+
 \subsection{Proactividad}
+
 \subsection{Métricas de Desempeño}
+Si fuera de nuestro interés determinar el desempeño individual de un agente, una métrica relevante sería 
+la cantidad de episodios que le tomó llegar a su destino, aunque debido a que la distancia que tienen que 
+recorrer varía es aún mejor evaluarlos individualmente como
+$$\frac{\mathrm{Episodios \ Transcurridos}}{\langle\mathrm{Origen}, \mathrm{Destino}\rangle_{\ell^{1}}},$$
+donde $\langle \bm{x}, \bm{y}\rangle_{\ell^{1}}$ representa la distancia Manhattan entre 2
+puntos $\bm{x}$, $\bm{y}$.
+
+No obstante, como es de nuestro interés determinar el rendimiento de los agentes a un nivel global, es más
+razonable evaluar el rendimiento que tienen de forma colaborativa y como responden a cambios en el flujo de
+entrada de agentes al sistema. Por esta razón se decidió que la simulación se detuviera cuando no se pudiera
+ingresar más agentes en ninguna de las esquinas del modelo (que es donde aparecen los nuevos agentes) y se 
+midió el rendimiento para un flujo de entrada particular como el número de episodios que podían transcurrir sin
+llegar a la condición de cierre.
+
+$$R(\phi_{\mathrm{e}}) = \mathrm{Episodios \ Totales}$$.
+
+El flujo de entrada en la simulación, se representó como un parámetro de línea de comandos para el servidor, que 
+determina el número de episodios que debe transcurrir antes de volver a agregar agentes.
+
 \section{Arquitectura de Subsunción}\label{sec:arch}
 \begin{table}[ht]
     \centering
