@@ -1,0 +1,97 @@
+\documentclass[twoside,11pt]{article}
+\usepackage{xcolor}
+\usepackage{style}
+\usepackage{tabularx}
+\usepackage{csquotes}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage{float}
+
+\newcommand{\myname}{Joaquín Badillo Granillo}
+
+\jmlrheading{Noviembre 29}{2023}{Movilidad Urbana}{TC2008B}
+\ShortHeadings{Movilidad Urbana}{}
+
+\begin{document}
+\renewcommand{\tablename}{Tabla}
+
+\title{Simulación Multiagente de Movilidad Urbana}
+
+\author{\name \myname \email \href{mailto:a01026364@tec.mx}{a01026364@tec.mx} \\
+       \addr Escuela de Ingeniería y Ciencias\\
+       Tecnológico de Monterrey\\
+       Campus Santa Fe
+       \AND
+       \name Pablo Bolio Pradilla \email \href{mailto:a01782428@tec.mx}{a01782428@tec.mx} \\
+       \addr Escuela de Ingeniería y Ciencias\\
+       Tecnológico de Monterrey\\
+       Campus Santa Fe
+       }
+
+\maketitle
+
+\begin{abstract}
+    
+\end{abstract}
+
+\begin{keywords}
+  Simulación, Multiagentes, Agentes Reactivos, Movilidad
+\end{keywords}
+
+\section{Introducción}
+% Simulación multiagente para tráfico
+El rápido crecimiento urbano ha dado como resultado altas densidades poblacionales.
+En zonas centralizadas como la Ciudad de México, aunque la cercanía de los servicios
+es muy alta, la cantidad de vehículos que se trasladan por las calles ha hecho que
+el tiempo para llegar a dichos servicios sea muy largo en comparación con su distancia.
+
+\subsection{Propuesta de Solución}
+En este proyecto se consideró el problema de la movilidad urbana a partir de una simulación
+multiagente. Los agentes a partir de un conjunto de reglas sencillas, como el respetar las señales
+de tránsito (en particular los semáforos) y la navegación a partir de las rutas más cortas para 
+alcanzar un destino, toman decisiones con un cierto grado de autonomía.
+
+Es entonces de nuestro interés observar si a partir de estas sencillas reglas y limitando el entendimiento 
+que tienen los agentes del ambiente a pequeñas vecindades, pueden emerger comportamientos egoístas que resulten
+en congestionamientos. Asímismo, se planteó una simulación en la que es posible modificar la afluencia de agentes,
+de tal forma que se puedan observar los límites que tiene el diseño de una ciudad tras un incremento en la densidad
+poblacional.
+
+\section{Diseño de Agentes}
+
+\begin{enumerate}
+    \item Esperar
+    
+    \item Moverse
+
+    \item Calcular ruta
+
+    \item Llegar a destino
+\end{enumerate}
+
+
+\subsection{Objetivo}
+\subsection{Capacidad Efectora (Actuadores)}
+\subsection{Percepción}
+\subsection{Proactividad}
+\subsection{Métricas de Desempeño}
+\section{Arquitectura de Subsunción}\label{sec:arch}
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c| >{\raggedright}p{0.3\textwidth} >{\raggedright}p{0.3\textwidth} >{\raggedright\arraybackslash}p{0.3\textwidth}|}
+    \cline{2-4}
+      & \textbf{Evento} & \textbf{Condiciones} & \textbf{Acción} \\\cline{2-4}
+     4 & Nada & Nada & Calcular ruta \\\cline{2-4}
+     3 & Seguir ruta & Celda disponible (es su destino)  & Llegar a destino\\\cline{2-4}
+     2 & Seguir ruta & Celda disponible & Moverse siguiendo ruta\\\cline{2-4}
+     1 & Seguir ruta & Celda ocupada por otro coche & Calcular ruta (actualizando costos para las celdas vecinas)\\\cline{2-4}
+     0 & Seguir ruta & En un cruce con semáforo en estado rojo & Esperar \\\cline{2-4}
+    \end{tabular}
+    \caption{Arquitectura de subsunción para los coches}
+    \label{tab:arch}
+\end{table}
+
+\section{Características del Ambiente}
+\section{Conclusiones}
+\end{document}
