@@ -1,4 +1,5 @@
 \documentclass[twoside,11pt]{article}
+\usepackage[spanish]{babel}
 \usepackage{xcolor}
 \usepackage{style}
 \usepackage{tabularx}
@@ -7,6 +8,7 @@
 \usepackage{wrapfig}
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage{apacite}
 
 \newcommand{\myname}{Joaquín Badillo Granillo}
 
@@ -48,9 +50,10 @@ el tiempo para llegar a dichos servicios sea muy largo en comparación con su di
 
 \subsection{Propuesta de Solución}
 En este proyecto se consideró el problema de la movilidad urbana a partir de una simulación
-multiagente. Los agentes a partir de un conjunto de reglas sencillas, como el respetar las señales
-de tránsito (en particular los semáforos) y la navegación a partir de las rutas más cortas para 
-alcanzar un destino, toman decisiones con un cierto grado de autonomía.
+multiagente utilizando la librería de mesa \cite[]{python-mesa-2020}. En esta simulación,
+los agentes toman decisiones con un cierto grado de autonomía a partir de un conjunto de reglas
+finitas y sencillas, como el respetar las señales de tránsito (en particular los semáforos) y 
+la navegación a partir de las rutas más cortas para alcanzar un destino, 
 
 Es entonces de nuestro interés observar si a partir de estas sencillas reglas y limitando el entendimiento 
 que tienen los agentes del ambiente a pequeñas vecindades, pueden emerger comportamientos egoístas que resulten
@@ -94,4 +97,9 @@ poblacional.
 
 \section{Características del Ambiente}
 \section{Conclusiones}
+
+\newpage
+
+\bibliographystyle{apacite}
+\bibliography{refs}
 \end{document}
