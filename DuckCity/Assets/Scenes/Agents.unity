@@ -156,8 +156,8 @@ MonoBehaviour:
   agentPrefab: {fileID: 7361239288800506316, guid: fd11a0dba19231e468d886459e50879c, type: 3}
   stoplightPrefab: {fileID: 4023908546181906138, guid: 42f7bd2a49359a441b625393a36fc7fd, type: 3}
   floor: {fileID: 5730340390516350889, guid: a5e2bda499bf68847a3a26e62fa084ae, type: 3}
-  NAgents: 10
-  timeToUpdate: 2
+  cycles: 2
+  timeToUpdate: 1.75
 --- !u!4 &112445767
 Transform:
   m_ObjectHideFlags: 0
@@ -352,13 +352,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1613391255}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 12.9, y: 24.4, z: 12.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &2103525905
 GameObject:
   m_ObjectHideFlags: 0

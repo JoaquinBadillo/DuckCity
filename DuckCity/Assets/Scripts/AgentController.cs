@@ -59,7 +59,13 @@ public class AgentController : MonoBehaviour {
     bool updated = false, started = false;
 
     public GameObject agentPrefab, stoplightPrefab, floor;
-    public int NAgents;
+    public int cycles;
+
+    // Team Data
+    private string year = "2023";
+    private string group = "301";
+    private string team = "5";
+    
     public float timeToUpdate = 5.0f;
     private float timer, dt;
 
@@ -136,7 +142,7 @@ public class AgentController : MonoBehaviour {
         */
         WWWForm form = new WWWForm();
 
-        form.AddField("NAgents", NAgents.ToString());
+        form.AddField("cycles", cycles.ToString());
 
         UnityWebRequest www = UnityWebRequest.Post(serverUrl + sendConfigEndpoint, form);
         www.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");

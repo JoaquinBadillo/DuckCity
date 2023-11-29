@@ -12,6 +12,8 @@ from TrafficSimulation.agents import Car, Stoplight
 from TrafficSimulation.model import TrafficModel
 import argparse
 
+from functools import reduce
+
 # Global Variables
 
 # Maps each agent str type to a dictionary
@@ -57,8 +59,8 @@ def bad_request(e):
 @app.route('/init', methods=['POST'])
 def initModel():
     global model, agent_cycle
-
     if request.method == 'POST':
+        agent_cycle = int(request.form.get('cycles', agent_cycle))
         model = TrafficModel(agent_cycle=agent_cycle)
         agents["car"]["collection"] = lambda: model.schedule.agents
         agents["stoplight"]["collection"] = lambda: model.traffic_lights
@@ -88,12 +90,13 @@ def getAgents(agentType):
 
 @app.route('/stats', methods=['GET'])
 def getStats():
+    global model
     if request.method == 'GET':
         stats = {
-            "total_cars": 0,
-            "concurrent_cars": 0,
-            "num_arrivals": 0,
-            "num_steps": 0,
+            "year": 2023,
+            "group": 301,
+            "team": 5,
+            "cars": model.num_agents,
         }
 
         return jsonify({'stats':stats})
