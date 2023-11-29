@@ -118,8 +118,4 @@ if __name__ == '__main__':
     if (agent_cycle := args.cycle) <= 1:
         raise ValueError("Agent cycle must be greater than 1")
 
-    
-
-
-
     app.run(port="8080", debug=True)

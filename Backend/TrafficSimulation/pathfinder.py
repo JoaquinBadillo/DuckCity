@@ -88,6 +88,9 @@ class GPS:
     def euclidean_distance(self, start: Tuple[int], end: Tuple[int]) -> float:
         return (start[0] - end[0]) ** 2 + (start[1] - end[1]) ** 2
         
+    def chebychev_distance(self, start: Tuple[int], end: Tuple[int]) -> int:
+        return max(abs(start[0] - end[0]), abs(start[1] - end[1]))
+
     def manhattan_distance(self, start: Tuple[int], end: Tuple[int]) -> int:
         return abs(start[0] - end[0]) + abs(start[1] - end[1])
     
@@ -127,7 +130,7 @@ class GPS:
 
         # Manage impossible paths ᓚᘏᗢ
         if end not in came_from:
-            return []
+            return None
 
         path = []
         current = end

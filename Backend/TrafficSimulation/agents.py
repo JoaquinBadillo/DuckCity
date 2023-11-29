@@ -22,11 +22,16 @@ class Car(Agent):
         
         self.turn = None
 
+        self.initial_patience = self.random.randint(1, 5)
+        self.patience = self.initial_patience
+        self.threshold = self.random.randint(-6, -4)
+
         self.model = model
         self.arrived = False
 
     def action(self) -> None:
-        if len(self.route) == 0: return
+        if len(self.route) == 0: 
+            return
 
         # -- State and Sensoring --
         
@@ -41,16 +46,54 @@ class Car(Agent):
         
         if stoplight is not None:
             if stoplight.state == Colors.RED:
-                self.wait()
+                self.wait(remove_patience=False)
                 return
-
-        # TODO - Turn directionals if taking a turn in at most 5 steps
 
         neighbors = self.model.grid.get_neighborhood(self.pos, 
                                                      moore=False, 
                                                      include_center=False)
 
         # -- Decision Making --
+        
+        # Try to follow route
+        moved = self.follow_route()
+        
+        if moved: return
+
+        x, y = self.route[-1]
+        
+        # Only recalculates route if the car is not taking a turn
+        if x != self.pos[0] and y != self.pos[1]:
+            if self.patience > 0:
+                self.wait()
+                return
+        
+        # Martyr
+        if self.patience <= self.threshold:
+            neighs = self.model.gps.get_neighbors(self.pos, self.destination)
+            free = [cell for cell in neighs 
+                    if not any(
+                        True for x in self.model.grid.get_cell_list_contents([cell]) 
+                        if isinstance(x, Car)
+                    )]
+            if len(free) > 0:
+                self.move(self.random.choice(free), resotre_patience=False)
+                self.calculate_route(neighbors)
+                return
+
+        updated = self.calculate_route(neighbors)
+        
+        if not updated: 
+            self.wait()
+            return
+        
+        moved = self.follow_route()
+
+        if not moved: 
+            self.wait()
+            return
+
+    def follow_route(self) -> bool:
         pos = self.route.pop()
 
         car = next(
@@ -63,52 +106,55 @@ class Car(Agent):
 
         if car is not None:
             self.route.append(pos)
-
-            x, y = pos
-            if x == self.pos[0] or y == self.pos[1]:
-                self.calculate_route(neighbors)
-            
-
-            return
+            return False
 
         self.move(pos)
+        return True
 
-        pass
+    def move(self, pos, resotre_patience = True) -> None:
+        if resotre_patience:
+            self.patience = self.initial_patience
 
-    def move(self, pos) -> None:
         self.model.grid.move_agent(self, pos)
         if pos == self.destination: 
             self.model.arrived_agents.append(self)
             self.arrived = True
 
-    def calculate_route(self, neighborhood = None) -> None:    
+    def calculate_route(self, neighborhood = None) -> bool:
         obstacles = set(
             agent.pos for agent in 
             self.model.grid.get_cell_list_contents(neighborhood) 
-            if isinstance(agent, Car) or isinstance(agent, Stoplight)
+            if isinstance(agent, Car)
         ) if neighborhood is not None else set()
 
 
         def cost(start, neighbor, obstacles = obstacles) -> int:
-            return 4 if neighbor in obstacles else (start[0] - neighbor[0]) ** 2 + (start[1] - neighbor[1]) ** 2
+            neighbor_cost = 4 if self.patience >= 0 else 2**(-self.patience)
+            return neighbor_cost if neighbor in obstacles else self.model.gps.euclidean_distance(start, neighbor)
 
         path = self.model.gps.astar(self.pos, self.destination, cost=cost)
-        
-        if self.route is None:
+        tolerance = 1.3 * len(self.route)
+
+        if self.patience < 0:
+            tolerance = self.model.width * self.model.height + 2**(-self.patience)
+
+        if path is None: return False
+
+        elif self.route is None:
             self.route = path
-        
-        # Toleration for a 30% increase in route length
-        # TODO - May change this to a percentage based on behavioral states
-        elif len(path) < 1.3 * len(self.route):
+         
+        elif len(path) < tolerance:
             self.route = path
 
+        return True
     
     def turn_directional(self, direction) -> None:
         self.turn = direction
         pass
 
-    def wait(self) -> None:
-        # TODO - May change some state variables (tolerance meter or something)...
+    def wait(self, remove_patience = True) -> None:
+        if remove_patience:
+            self.patience -= 1
         return
 
     def step(self) -> None:
