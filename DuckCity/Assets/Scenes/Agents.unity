@@ -388,7 +388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4069f627869f654cb8aedec6517528c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  layout: {fileID: 4900000, guid: fcee9a68abf8b9e438472e70a31ac5c9, type: 3}
+  layout: {fileID: 4900000, guid: 3f4a9b138cd28944ba5e1bf62aa88e7d, type: 3}
   road: {fileID: 5730340390516350889, guid: a5e2bda499bf68847a3a26e62fa084ae, type: 3}
   building: {fileID: 4336867535941437554, guid: 2d768fe0312856b4f8376f49378add94, type: 3}
   stoplight: {fileID: 4023908546181906138, guid: 42f7bd2a49359a441b625393a36fc7fd, type: 3}
