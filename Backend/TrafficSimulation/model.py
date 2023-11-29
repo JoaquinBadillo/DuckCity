@@ -108,17 +108,24 @@ class TrafficModel(Model):
                         agent = Road(f"r_{r*self.width+c}", self, (Directions.DOWN, Directions.RIGHT,))
                         self.grid.place_agent(agent, (c, self.height - r - 1))
 
-                    elif col in ["S", "s"]:
-                        stoplight = Stoplight(f"tl_{r*self.width+c}", self, Colors.GREEN, int(dataDictionary[col]))
+                    elif col in ["y", "Y", "h", "H"]:
+                        stoplight = Stoplight(f"tl_{r*self.width+c}", self, Colors.GREEN, 10)
                         self.grid.place_agent(stoplight, (c, self.height - r - 1))
                         self.traffic_lights.append(stoplight)
 
-                        if col == "S":
-                            road = Road(f"r_{r*self.width+c}", self, (Directions.UP, Directions.DOWN))
+                        if col == "y":
+                            road = Road(f"r_{r*self.width+c}", self, (Directions.DOWN,))
                             self.grid.place_agent(road, (c, self.height - r - 1))
                             stoplight.state = Colors.RED
-                        else:
-                            road = Road(f"r_{r*self.width+c}", self, (Directions.LEFT, Directions.RIGHT))
+                        elif col == "Y":
+                            road = Road(f"r_{r*self.width+c}", self, (Directions.UP,))
+                            self.grid.place_agent(road, (c, self.height - r - 1))
+                            stoplight.state = Colors.RED
+                        elif col == "h":
+                            road = Road(f"r_{r*self.width+c}", self, (Directions.LEFT,))
+                            self.grid.place_agent(road, (c, self.height - r - 1))
+                        elif col == "H":
+                            road = Road(f"r_{r*self.width+c}", self, (Directions.RIGHT,))
                             self.grid.place_agent(road, (c, self.height - r - 1))
                         
                     elif col == "#":
