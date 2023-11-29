@@ -62,7 +62,7 @@ class TrafficModel(Model):
             open(f"{os.path.dirname(__file__)}/city_files/mapDictionary.json")
         )
 
-        with open(f'{os.path.dirname(__file__)}/city_files/2021_base2.txt') as city:
+        with open(f'{os.path.dirname(__file__)}/city_files/2023_base.txt') as city:
             lines = city.readlines()
             self.width = len(lines[0])-1
             self.height = len(lines)
