@@ -19,8 +19,6 @@ class Car(Agent):
         self.steps_taken = 0
         self.destination = destination
         self.route = []
-        
-        self.turn = None
 
         self.initial_patience = self.random.randint(1, 5)
         self.patience = self.initial_patience
@@ -147,10 +145,6 @@ class Car(Agent):
             self.route = path
 
         return True
-    
-    def turn_directional(self, direction) -> None:
-        self.turn = direction
-        pass
 
     def wait(self, remove_patience = True) -> None:
         if remove_patience:

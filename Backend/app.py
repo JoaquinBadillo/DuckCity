@@ -11,8 +11,7 @@ from flask import Flask, request, jsonify, abort
 from TrafficSimulation.agents import Car, Stoplight
 from TrafficSimulation.model import TrafficModel
 import argparse
-
-from functools import reduce
+import os
 
 # Global Variables
 
@@ -45,6 +44,8 @@ agents = {
 
 model = None
 agent_cycle = 10
+post_step = 100
+post_url = None
 
 app = Flask("app")
 
@@ -58,10 +59,12 @@ def bad_request(e):
 
 @app.route('/init', methods=['POST'])
 def initModel():
-    global model, agent_cycle
+    global model, agent_cycle, post_step, post_url
     if request.method == 'POST':
         agent_cycle = int(request.form.get('cycles', agent_cycle))
-        model = TrafficModel(agent_cycle=agent_cycle)
+        model = TrafficModel(agent_cycle=agent_cycle,
+                             post_cycle=post_step,
+                             self_url=post_url)
         agents["car"]["collection"] = lambda: model.schedule.agents
         agents["stoplight"]["collection"] = lambda: model.traffic_lights
         
@@ -112,10 +115,17 @@ def updateModel():
         })
 
 if __name__ == '__main__':
+    env = os.environ
+    
     parser = argparse.ArgumentParser(description='Run the server.')
-    parser.add_argument('--cycle', type=int, default=10, help='Agent cycle')
+    parser.add_argument('--cycles', type=int, default=int(env.get("AGENT_CYCLE", 10)), help='Number of cycles in between agent spawners.')
+    parser.add_argument('--post_step', type=int, default=int(env.get("POST_STEP", 100)), help='Number of steps in between posts.')
+    parser.add_argument('--url', type=str, default=env.get("URL", None), help='Server URL for competition.')
     args = parser.parse_args()
     if (agent_cycle := args.cycle) <= 1:
         raise ValueError("Agent cycle must be greater than 1")
+    if (post_step := args.post_step) <= 1:
+        raise ValueError("Post step must be greater than 1")
+    post_url = args.url
 
     app.run(port="8080", debug=True)

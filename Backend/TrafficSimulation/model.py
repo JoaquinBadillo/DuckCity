@@ -26,15 +26,18 @@ from .utilities import (
 )
 
 from .pathfinder import GPS
-
-import json
 import os
+
+import requests
+from threading import Thread
 
 class TrafficModel(Model):
     def __init__(self,
                  width=50,
                  height=50,
-                 agent_cycle=10):
+                 agent_cycle=10,
+                 post_cycle=100,
+                 self_url=None):
         super().__init__()
 
         self.grid = MultiGrid(width, height, True)
@@ -55,12 +58,10 @@ class TrafficModel(Model):
 
         self.agent_cycle = agent_cycle
 
-        self.arrived_agents = []
+        self.url = self_url
+        self.post_cycle = post_cycle
 
-        # Load map from file
-        dataDictionary = json.load(
-            open(f"{os.path.dirname(__file__)}/city_files/mapDictionary.json")
-        )
+        self.arrived_agents = []
 
         with open(f'{os.path.dirname(__file__)}/city_files/2023_base.txt') as city:
             lines = city.readlines()
@@ -160,6 +161,23 @@ class TrafficModel(Model):
             self.num_agents += 1
             self.agent_id += 1
             self.added_agents+=1
+    
+    def post(self, num_arrivals):
+        if self.url is None:
+            return
+
+        print(f"Sending POST request to {self.url}")
+        data = {
+            "year": 2023,
+            "group": 301,
+            "team": 5,
+            "cars": num_arrivals
+        }
+
+        try:
+            requests.post(self.url, json = data)
+        except:
+            print("Error sending POST request")
 
     def step(self):
         while (len(self.arrived_agents) > 0):
@@ -175,8 +193,10 @@ class TrafficModel(Model):
         self.schedule.step()
         self.num_steps += 1
 
-        if self.num_steps % self.agent_cycle != 0:
-            return
+        if self.num_steps % self.post_cycle == 0: 
+            Thread(target=self.post, args=(self.num_arrivals,)).start()
+            
+        if self.num_steps % self.agent_cycle != 0: return
         
         valid_corners = filter(
             lambda cell: not any(x for x in self.grid.get_cell_list_contents([cell]) 
