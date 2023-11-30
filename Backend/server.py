@@ -41,11 +41,15 @@ def agent_portrayal(agent):
     return portrayal
 
 if __name__ == "__main__":
+    env = os.environ
+
     width = 0
     height = 0
 
     parser = argparse.ArgumentParser(description='Run the traffic simulation.')
-    parser.add_argument('--cycles', type=int, default=10, help='Number of cycles to run the simulation for.')
+    parser.add_argument('--cycles', type=int, default=int(env.get("AGENT_CYCLE", 10)), help='Number of cycles in between agent spawners.')
+    parser.add_argument('--post_step', type=int, default=int(env.get("POST_STEP", 100)), help='Number of steps in between posts.')
+    parser.add_argument('--url', type=str, default=env.get("URL", None), help='Server URL for competition.')
     args = parser.parse_args()
 
     with open(f'{os.path.dirname(__file__)}/TrafficSimulation/city_files/2021_base2.txt') as baseFile:
@@ -56,7 +60,12 @@ if __name__ == "__main__":
     print(width, height)
     grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
 
-    server = ModularServer(TrafficModel, [grid], "Traffic", {"agent_cycle": args.cycles})
+    server = ModularServer(
+        TrafficModel, [grid], "Traffic", 
+        {"agent_cycle": args.cycles,
+         "post_cycle": args.post_step,
+         "self_url": args.url}
+    )
                         
     server.port = 8521 # The default
     server.launch()
