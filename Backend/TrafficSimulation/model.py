@@ -37,7 +37,8 @@ class TrafficModel(Model):
                  height=50,
                  agent_cycle=10,
                  post_cycle=100,
-                 self_url=None):
+                 self_url=None,
+                 limit=1000):
         super().__init__()
 
         self.grid = MultiGrid(width, height, True)
@@ -53,6 +54,7 @@ class TrafficModel(Model):
         self.agent_id = 1
         self.added_agents = 0
         self.num_arrivals = 0
+        self.limit = limit
         self.traffic_lights = []
         self.destinations = []
 
@@ -169,9 +171,9 @@ class TrafficModel(Model):
         print(f"Sending POST request to {self.url}")
         data = {
             "year": 2023,
-            "group": 301,
-            "team": 5,
-            "cars": num_arrivals
+            "classroom": 301,
+            "name": "Ducking (Joaco y Bolio)",
+            "num_cars": num_arrivals
         }
 
         try:
@@ -195,7 +197,11 @@ class TrafficModel(Model):
 
         if self.num_steps % self.post_cycle == 0: 
             Thread(target=self.post, args=(self.num_arrivals,)).start()
-            
+        
+        if self.num_steps == self.limit: 
+            self.running = False
+            return
+        
         if self.num_steps % self.agent_cycle != 0: return
         
         valid_corners = filter(
