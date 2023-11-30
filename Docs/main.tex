@@ -10,6 +10,16 @@
 \usepackage{float}
 \usepackage{apacite}
 \usepackage{bm}
+\usepackage{pgfplots}
+
+\pgfplotsset{
+  compat=newest,
+  plot coordinates/math parser=false,
+  every axis plot/.append style={line width=1.5pt}
+}
+\newlength\figureheight
+\newlength\figurewidth
+
 
 \newcommand{\myname}{Joaquín Badillo Granillo}
 
@@ -19,7 +29,7 @@
 \begin{document}
 \renewcommand{\tablename}{Tabla}
 
-\title{Simulación Multiagente de Movilidad Urbana}
+\title{Tolerance is All You Need}
 
 \author{\name \myname \email \href{mailto:a01026364@tec.mx}{a01026364@tec.mx} \\
        \addr Escuela de Ingeniería y Ciencias\\
@@ -33,6 +43,21 @@
        }
 
 \maketitle
+
+\vspace{-16pt}
+
+\begin{center}
+  \textbf{Bajo la instrucción de:}
+  
+  \vspace{8pt}
+
+  \begin{tabular}{cc}
+    \hspace{34pt}Octavio Navarro Hinojosa\hspace{34pt} & \hspace{34pt}Gilberto Echeverría Furió\hspace{34pt} \\
+    \href{mailto:octavio.navarro@tec.mx}{octavio.navarro@tec.mx} & \href{mailto:g.echeverria@tec.mx}{g.echeverria@tec.mx} 
+  \end{tabular}
+\end{center}
+
+  \vspace{14pt}
 
 \begin{abstract}
     
@@ -90,7 +115,10 @@ creativa. En esta simulación, los agentes calculan rutas a partir del algoritmo
 de A*, usando generalmente el cuadrado de la norma $\ell^{2}$ como función de costos y 
 la norma $\ell^{1}$ como heurística. En caso de recalcular una ruta, un agente puede
 además usar la información de sus vecinos más próximos para incrementar el costo
-entre celdas.
+entre celdas. Cabe destacar que también se consideró el uso de la norma $\ell^{\infty}$
+como función de costos, ya que los movimientos en el software de simulación asemejan
+en gran medida un tablero de ajedrez y no se observó ningún cambio en los resultados
+obtenidos por A*.
 
 \subsection{Percepción}
 Los vehículos son únicamente capaces de observar una vecindad en un radio de $\sqrt{2}$
@@ -104,32 +132,45 @@ vehículos).
 Si fuera de nuestro interés determinar el desempeño individual de un agente, una métrica relevante sería 
 la cantidad de episodios que le tomó llegar a su destino, aunque debido a que la distancia que tienen que 
 recorrer varía es aún mejor evaluarlos individualmente como
-$$\frac{\mathrm{Episodios \ Transcurridos}}{\langle\mathrm{Origen}, \mathrm{Destino}\rangle_{\ell^{1}}},$$
-donde $\langle \bm{x}, \bm{y}\rangle_{\ell^{1}}$ representa la distancia Manhattan entre 2
+\begin{equation}
+  \frac{\mathrm{Episodios \ Transcurridos}}{\langle\mathrm{Origen}, \mathrm{Destino}\rangle_{\ell^{\infty}}},
+\end{equation}
+
+donde $\langle \bm{x}, \bm{y}\rangle_{\ell^{\infty}}$ representa la distancia de Chebyshev entre 2
 puntos $\bm{x}$, $\bm{y}$.
 
 No obstante, como es de nuestro interés determinar el rendimiento de los agentes a un nivel global, es más
 razonable evaluar el rendimiento que tienen de forma colaborativa y como responden a cambios en el flujo de
-entrada de agentes al sistema. Por esta razón se decidió que la simulación se detuviera cuando no se pudiera
-ingresar más agentes en ninguna de las esquinas del modelo (que es donde aparecen los nuevos agentes) y se 
-midió el rendimiento para un flujo de entrada particular como el número de episodios que podían transcurrir sin
-llegar a la condición de cierre.
+entrada de agentes al sistema. Por esta razón se decidió que para un episodio en particular $t$, la métrica de desempeño $R$
+sea el número de agentes totales que han llegado a su destino
 
-$$R(\phi_{\mathrm{e}}) = \mathrm{Episodios \ Totales}$$.
+\begin{equation}\label{eq:metric}
+  R(t) = \mathrm{N\acute{u}mero \ de \ llegadas \ despu\acute{e}s \ de \ } t \ \mathrm{episodios}.
+\end{equation}
 
-El flujo de entrada en la simulación, se representó como un parámetro de línea de comandos para el servidor, que 
-determina el número de episodios que debe transcurrir antes de volver a agregar agentes.
+Evidentemente si se tiene un mayor flujo de agentes y estos logran colaborar de forma efectiva, se espera que
+más agentes lleguen a sus destinos en un menor número de episodios. También cabe destacar que la métrica de desempeño
+es más interesante cuando la simulación llega a su condición de cierre, que es cuando se deben agregar agentes pero ninguna esquina
+del mapa (que es donde aparecen) está disponible.
+
+Para poder variar el flujo de entrada en la simulación, esta cantidad se representó como un parámetro de línea de comandos (o una variable de entorno) 
+para el servidor, que determina el número de episodios que debe transcurrir antes de volver a agregar agentes. Asimismo es posible especificar
+dicho valor desde la ruta {\tt{/init}} del API, pasando el parámetro {\tt{cycles}} desde un formulario web.
 
 \section{Arquitectura de Subsunción}\label{sec:arch}
+
 \begin{table}[ht]
     \centering
     \begin{tabular}{c| >{\raggedright}p{0.3\textwidth} >{\raggedright}p{0.3\textwidth} >{\raggedright\arraybackslash}p{0.3\textwidth}|}
     \cline{2-4}
       & \textbf{Evento} & \textbf{Condiciones} & \textbf{Acción} \\\cline{2-4}
-     4 & Nada & Nada & Calcular ruta \\\cline{2-4}
-     3 & Seguir ruta & Celda disponible (es su destino)  & Llegar a destino\\\cline{2-4}
-     2 & Seguir ruta & Celda disponible & Moverse siguiendo ruta\\\cline{2-4}
-     1 & Seguir ruta & Celda ocupada por otro coche & Calcular ruta (actualizando costos para las celdas vecinas)\\\cline{2-4}
+     7 & Nada & Nada & Calcular ruta \\\cline{2-4}
+     6 & Seguir ruta & Celda disponible & Moverse siguiendo ruta\\\cline{2-4}
+     5 & Seguir ruta & Celda ocupada por otro coche, es una diagonal y la paciencia es menor o igual a 0 & Recalcular ruta (actualizando costos)\\\cline{2-4}
+     4 & Seguir ruta & Celda ocupada por otro coche, es una diagonal y la paciencia es positiva & Esperar (restando paciencia)\\\cline{2-4}
+     3 & Seguir ruta & La paciencia es negativa y llegó a un límite & Intentar moverse a una celda disponible aleatoria y recalcular ruta\\\cline{2-4}
+     2 & Seguir ruta & Celda disponible (es su destino)  & Llegar a destino\\\cline{2-4}
+     1 & Seguir ruta & Celda disponible  & Moverse\\\cline{2-4}
      0 & Seguir ruta & En un cruce con semáforo en estado rojo & Esperar \\\cline{2-4}
     \end{tabular}
     \caption{Arquitectura de subsunción para los coches}
@@ -137,7 +178,98 @@ determina el número de episodios que debe transcurrir antes de volver a agregar
 \end{table}
 
 \section{Características del Ambiente}
-\section{Conclusiones}
+El espacio en el que viven los agentes es discreto y finito, el cual se representa con un 
+tablero de $M\times N$ casillas,y este se crea a partir de un documento de texto, en el 
+que se determinan los sentidos de las calles, las posiciones de los semáforos y los destinos
+a partir de una simbología previamente determinada. 
+
+El ambiente es relativamente inaccesible, ya que aunque los agentes son capaces de obtener
+rutas eficientes (en términos de distancia) y por ende tienen un cierto conocimiento del mapa,
+no son capaces de predecir el comportamiento ni la ubicación de otros agentes (a excepción de sus)
+vecinos más próximos. 
+
+El ambiente es un tanto estático; ya que aunque se introducen, eliminan y se mueven agentes vehiculares,
+los semáforos y los destinos no cambian de posición. Asimismo, el ambiente es no determinista, ya que
+el orden en el que los agentes toman las decisiones cambia entre simulaciones (debido al uso del {\tt{RandomScheduler}} de 
+mesa) al igual que por ciertas variables aleatorias\footnote{En realidad son pseudo-aleatorias dado que son números generados computacionalmente y por ende son replicables con cierto conocimiento de la semilla y la secuencia.} que se utilizan para definir la tolernacia de los agentes.
+
+\section{Resultados y conclusiones}
+
+Originalmente se consideró una arquitecutra de subsunción en la que los agentes recalculaban una ruta cada vez que un vehículo obstruía la celda
+a la que se querían mover. Sin embargo, debido a que en el mapa había una glorieta, algunos agentes se notaban impacientes por desplazarse y por lo tanto se metían al
+carril interno. Como los agentes propuestos no cuentan con direccionales, a veces les resultaba imposible llegar a su salida ya que nadie cedía el paso en favor de su proactividad
+y con una afluencia alta de agentes terminaban en un \textit{gridlock}. Después de un bloqueo de la rotonda, la simulación sobrevivía unas cuantas decenas de episodios más antes de 
+que todas las calles quedaran congestionadas y que consecuentemente se llegara a la condición de cierre.
+
+El bloqueo entre los vehículos dio pauta al principal descubrimiento de esta investigación, la tolerancia es todo lo que se necesita. Pues resultó evidente con la rotonda que cambiarse de carril no
+siempre es la mejor decisión y si no se introducen algoritmos de aprendizaje que le permitan a los agentes determinar cuándo es conveniente cambiar de carril, resulta eficiente
+que esperen unos episodios antes de tomar la decisión. Además, para evitar que muchos coches se cambien de carril de forma simultánea, se generaron sus límites de tolerancia de forma
+pseudo-aleatoria y en caso de que este límite de paciencia se rebase, se tiene un segundo límite más agresivo con el que un vehículo preferirá moverse a cualquier espacio disponible: no solo cambiando su ruta 
+por completo; sino también sacrificando su proactividad en favor del rendimiento de la simulación en su totalidad. Esta decisión, aunque parece ser irracional podría en realidad confundirse por un comportamiento
+inteligente, como si los agentes pudieran entender la existencia de un equilibrio de Nash. 
+
+Una vez realizados estos cambios y trás la observación de su rendimiento desde el visualizador de {\tt{mesa}}, se decidió correr la simulación múltiples veces
+como proceso en segundo plano (agregando agentes cada 2 episodios) y escribir los resultados a un archivo para encontrar patrones en su rendimiento (ver \autoref{fig:runs}). 
+La principal observación que se obtuvo de estos resultados fue que inicialmente la llegada de los agentes a sus destinos es rápida y casi lineal, pero eventualmente se 
+estanca mostrando un comportamiento asintótico y dando fin a la simulación.
+
+\begin{figure}[ht]
+  \begin{subfigure}[b]{0.32\textwidth}
+  {\begin{tikzpicture}[scale=0.55]
+  \begin{axis}[
+      grid style={line width=.1pt, draw=gray!10},
+      major grid style={line width=.2pt,draw=gray!50},
+      xlabel={Episodio},
+      ylabel={Número de llegadas totales},
+      ymin={0},
+      ymax={2000},
+      xmin={0},
+      xmax={1300}
+  ]
+  \addplot[red] table[x=step, y=arrivals]{./data/run1.txt};
+  \end{axis}
+  \end{tikzpicture}}
+  \caption{Primera Simulación}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.32\textwidth}
+    {\begin{tikzpicture}[scale=0.55]
+    \begin{axis}[
+        grid style={line width=.1pt, draw=gray!10},
+        major grid style={line width=.2pt,draw=gray!50},
+        xlabel={Episodio},
+        ylabel={Número de llegadas totales},
+        ymin={0},
+        ymax={2000},
+        xmin={0},
+        xmax={1300}
+    ]
+    \addplot[green] table[x=step, y=arrivals]{./data/run2.txt};
+    \end{axis}
+    \end{tikzpicture}}
+    \caption{Segunda Simulación}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.32\textwidth}
+    {\begin{tikzpicture}[scale=0.55]
+    \begin{axis}[
+        grid style={line width=.1pt, draw=gray!10},
+        major grid style={line width=.2pt,draw=gray!50},
+        xlabel={Episodio},
+        ylabel={Número de llegadas totales},
+        ymin={0},
+        ymax={2000},
+        xmin={0},
+        xmax={1300}
+    ]
+    \addplot[blue] table[x=step, y=arrivals]{./data/run3.txt};
+    \end{axis}
+    \end{tikzpicture}}
+    \caption{Tercera Simulación}
+  \end{subfigure}
+  \caption{Resultados agregando agentes cada 2 episodios.}
+  \label{fig:runs}
+\end{figure}
 
 \newpage
 
