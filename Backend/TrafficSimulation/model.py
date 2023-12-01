@@ -112,7 +112,7 @@ class TrafficModel(Model):
                         self.grid.place_agent(agent, (c, self.height - r - 1))
 
                     elif col in ["y", "Y", "h", "H"]:
-                        stoplight = Stoplight(f"tl_{r*self.width+c}", self, Colors.GREEN, 10)
+                        stoplight = Stoplight(f"tl_{r*self.width+c}", self, Colors.GREEN, 5)
                         self.grid.place_agent(stoplight, (c, self.height - r - 1))
                         self.traffic_lights.append(stoplight)
 

@@ -59,14 +59,6 @@
 
   \vspace{14pt}
 
-\begin{abstract}
-    
-\end{abstract}
-
-\begin{keywords}
-  Simulación, Multiagentes, Agentes Reactivos, Movilidad
-\end{keywords}
-
 \section{Introducción}
 El rápido crecimiento urbano ha dado como resultado altas densidades poblacionales.
 En zonas centralizadas como la Ciudad de México, aunque la cercanía de los servicios
@@ -127,6 +119,13 @@ previo de las calles que les permite calcular rutas eficientes (asumiendo que no
 vehículos).
 
 \subsection{Proactividad}
+Contemplando el objetivo principal de la simulación, que es alcanzar el destino en el menor tiempo posible, 
+teniendo en cuenta que no son omniscientes los agentes, es decir, conocen las rutas, pero les es imposible saber 
+si hay congestión en la ruta que seguirá. Por lo que los conductores vuelven a calcular la ruta cuando no es capaz de moverse 
+y dependiendo de la nueva ruta adquirida es el comportamiento que sigue. Previendo que en momentos es mejor hacer una ruta absurdamente 
+larga que esperar a que se descongestione una calle, los agentes cuentan con paciencia, la cual se reduce cada paso en el que esperan. 
+En el momento en el que la paciencia esté por debajo de cierto rango, los agentes aceptan cualquier ruta como óptima. 
+Lo que permite que todos lleguen a su destino evitando causar cuellos de botella.
 
 \subsection{Métricas de Desempeño}
 Si fuera de nuestro interés determinar el desempeño individual de un agente, una métrica relevante sería 
@@ -192,6 +191,12 @@ El ambiente es un tanto estático; ya que aunque se introducen, eliminan y se mu
 los semáforos y los destinos no cambian de posición. Asimismo, el ambiente es no determinista, ya que
 el orden en el que los agentes toman las decisiones cambia entre simulaciones (debido al uso del {\tt{RandomScheduler}} de 
 mesa) al igual que por ciertas variables aleatorias\footnote{En realidad son pseudo-aleatorias dado que son números generados computacionalmente y por ende son replicables con cierto conocimiento de la semilla y la secuencia.} que se utilizan para definir la tolernacia de los agentes.
+
+\section{Controlador de Agentes}
+Para la parte gráfica de la simulación se utilizó Unity como herramienta, en donde se hizo la visualización de todos los agentes como vehículos puntualmente utilizando wavefronts (obj) como los modelos utilizados. 
+El control de los agentes se hizo en su totalidad con la librería Mesa de Python, conectando la funcionalidad de la librería con Unity a través de un servidor de Flask. La forma en la que esto funciona es que se le brinda a 
+Unity la capacidad de hacer peticiones al servidor que con el script AgentController, que es el responsable de recibir la posición de todos los agentes como existan en Mesa, para que con los scripts de movimiento, desplace los agentes 
+con transformaciones de matrices, otra función del script es hacer que se instancíen los objetos en Unity para poder controlarlos, así como destruirlos cuando lleguen a su destino.
 
 \section{Resultados y conclusiones}
 
@@ -267,7 +272,7 @@ estanca mostrando un comportamiento asintótico y dando fin a la simulación.
     \end{tikzpicture}}
     \caption{Tercera Simulación}
   \end{subfigure}
-  \caption{Resultados agregando agentes cada 2 episodios.}
+  \caption{Resultados agregando agentes cada 2 episodios y usando semáforos con tiempos de 10s entre estados}
   \label{fig:runs}
 \end{figure}
 
