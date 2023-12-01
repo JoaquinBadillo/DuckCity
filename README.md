@@ -48,6 +48,10 @@ python3 app.py
 
 El cliente de esta visualización está hecho con Unity. La forma más sencilla de utilizarlo es instalar Unity Hub, abrir el proyecto y abrir la escena `Assets/Scenes/Agents.unity`. Una vez que esté abierta la escena, se puede ejecutar la visualización presionando el botón de _play_.
 
+## Simulación de muestra
+
+Para ver una ejemplo de la simulación en Unity por favor consulten la siguiente liga a Google Drive: [Simulación](https://drive.google.com/drive/folders/1n69C3HmEbCnI3iSxWJdBvsklpGTjrgkv?usp=drive_link)
+
 ## Contribuciones
 
 Este proyecto se realizó para una clase de Gráficas Computacionales y Multiagentes. Después de su entrega aceptamos contribuciones de cualquier tipo, ya sea código, documentación, ideas, etc. Para contribuir, por favor sigue los siguientes pasos:
